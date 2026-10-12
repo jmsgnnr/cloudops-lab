@@ -4,4 +4,7 @@ node_modules/
 .env.*
 .DS_Store
 .vscode/
-.cursor/
+.cursor/*
+!.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/design.mdc
