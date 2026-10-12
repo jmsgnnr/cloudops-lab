@@ -4,6 +4,7 @@ import {
   evaluate,
   scoreQuiz,
   selectQuestions,
+  shuffleQuestionChoices,
   readProgress,
   storeProgress,
   recordAttempt,
@@ -111,5 +112,42 @@ describe("progress storage", () => {
       result: scoreQuiz([q], { [q.id]: [...q.answers] })
     });
     assert.ok(!right.missed.includes(q.id));
+  });
+});
+
+describe("choice order randomization", () => {
+  it("remaps the answer index when it changes option order, without touching the bank", () => {
+    const original = QUESTIONS.find(q => q.id === "scs-21");
+    const before = [...original.options];
+    const shuffled = shuffleQuestionChoices(original, () => 0);
+    assert.notDeepEqual(shuffled.options, original.options);
+    assert.deepEqual(original.options, before);
+    assert.deepEqual(
+      shuffled.answers.map(i => shuffled.options[i]).sort(),
+      original.answers.map(i => original.options[i]).sort()
+    );
+    assert.ok(evaluate(shuffled, shuffled.answers));
+    assert.deepEqual(shuffled.answers.map(i => shuffled.options[i]), original.answers.map(i => original.options[i]));
+  });
+
+  it("keeps all correct choices for multi-answer questions", () => {
+    const original = QUESTIONS.find(q => q.track === "networking" && q.answers.length > 1);
+    const shuffled = shuffleQuestionChoices(original, () => 0);
+    assert.equal(shuffled.answers.length, original.answers.length);
+    assert.deepEqual(
+      shuffled.answers.map(i => shuffled.options[i]).sort(),
+      original.answers.map(i => original.options[i]).sort()
+    );
+    assert.ok(evaluate(shuffled, shuffled.answers));
+    assert.equal(evaluate(shuffled, []), false);
+  });
+
+  it("returns shuffled option copies through normal session selection", () => {
+    const original = QUESTIONS.find(q => q.id === "clf-21");
+    const [selected] = selectQuestions(QUESTIONS, { track: "practitioner", count: 1, domain: original.domain, focus: "bookmarks", bookmarks: [original.id] }, () => 0);
+    assert.equal(selected.id, original.id);
+    assert.notStrictEqual(selected, original);
+    assert.notDeepEqual(selected.options, original.options);
+    assert.deepEqual(selected.answers.map(i => selected.options[i]), original.answers.map(i => original.options[i]));
   });
 });

@@ -20,6 +20,21 @@ export function scoreQuiz(questions, answers = {}) {
   return { correct, total: questions.length, percent: questions.length ? Math.round((correct / questions.length) * 100) : 0, byDomain, detail };
 }
 
+export function shuffleQuestionChoices(question, random = Math.random) {
+  const pairs = question.options.map((value, originalIndex) => ({ value, originalIndex }));
+  for (let i = pairs.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+  }
+  const correctOriginal = new Set(question.answers);
+  return {
+    ...question,
+    options: pairs.map(({ value }) => value),
+    answers: pairs.flatMap(({ originalIndex }, index) =>
+      correctOriginal.has(originalIndex) ? [index] : [])
+  };
+}
+
 export function selectQuestions(bank, { track, domain = "all", count = 10, missed = [], bookmarks = [], focus = "all" } = {}, random = Math.random) {
   if (!TRACKS[track]) throw new Error("Unknown certification track");
   let candidate = bank.filter(q => q.track === track && (domain === "all" || q.domain === domain));
@@ -50,7 +65,7 @@ export function selectQuestions(bank, { track, domain = "all", count = 10, misse
       if (selected.length >= limit) break;
     }
   }
-  return selected;
+  return selected.map(q => shuffleQuestionChoices(q, random));
 }
 
 export const STORAGE_KEY = "aws-cert-lab-progress-v1";

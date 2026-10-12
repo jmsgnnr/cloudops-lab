@@ -80,7 +80,7 @@ function averageAccuracy(attempts) {
 function updateHeaderCounts() {
   const validation = validateBank(QUESTIONS);
   $("question-total").textContent = `${validation.total} ORIGINAL QUESTIONS`;
-  $("library-total").textContent = `${validation.total}+ QUESTIONS`;
+  $("library-total").textContent = `${validation.total} ORIGINAL QUESTIONS`;
   for (const btn of trackGrid.querySelectorAll("[data-count]")) {
     const key = btn.getAttribute("data-count");
     btn.textContent = `${validation.counts[key] ?? 0} QUESTIONS`;
@@ -90,7 +90,7 @@ function updateHeaderCounts() {
 function updateStats() {
   attemptsStat.textContent = String(progress.attempts.length);
   const avg = averageAccuracy(progress.attempts);
-  accuracyStat.textContent = avg === null ? "—" : `${avg}%`;
+  accuracyStat.textContent = avg === null ? " | " : `${avg}%`;
   const missedInTrack = progress.missed.filter((id) =>
     QUESTIONS.some((q) => q.id === id && q.track === currentTrack)
   ).length;
@@ -112,7 +112,7 @@ function setActiveTrack(trackId) {
   renderDomainOptions();
   renderGuide();
   updateStats();
-  sessionHint.textContent = `Ready for ${TRACKS[trackId].code} — configure a session and start.`;
+  sessionHint.textContent = `Ready for ${TRACKS[trackId].code}  |  configure a session and start.`;
 }
 
 function renderDomainOptions() {
@@ -142,6 +142,7 @@ function renderGuide() {
         <h3>${escapeHtml(domain.id)}</h3>
         <span class="domain-weight">${domain.weight}%</span>
       </header>
+      <div class="domain-gauge" role="presentation" aria-hidden="true"><span style="width:${domain.weight}%"></span></div>
       <p class="domain-note">${escapeHtml(domain.note)}</p>
     `;
     if (lesson) {
@@ -170,8 +171,18 @@ function showView(name) {
   dashboard.hidden = name !== "dashboard";
   quizView.hidden = name !== "quiz";
   resultsView.hidden = name !== "results";
+  const hero = document.querySelector(".hero");
+  if (hero) hero.hidden = name !== "dashboard";
   if (name === "dashboard") stopTimer();
+
+  // View navigation is immediate even when page anchors use smooth scroll.
+  const root = document.documentElement;
+  const previous = root.style.scrollBehavior;
+  root.style.scrollBehavior = "auto";
   window.scrollTo(0, 0);
+  root.style.scrollBehavior = previous;
+  if (name === "quiz") quizTitle.focus({ preventScroll: true });
+  if (name === "results") $("results-title").focus({ preventScroll: true });
 }
 
 function stopTimer() {
@@ -423,7 +434,7 @@ function toggleBookmark() {
   else set.add(q.id);
   progress = { ...progress, bookmarks: [...set] };
   if (!storeProgress(storage, progress)) {
-    sessionHint.textContent = "Could not save bookmarks — browser storage may be unavailable.";
+    sessionHint.textContent = "Could not save bookmarks  |  browser storage may be unavailable.";
   }
   updateBookmarkButton(q);
   updateStats();
@@ -450,7 +461,7 @@ function renderResults(result, questions, reason, stored) {
   resultScore.textContent = `${result.percent}%`;
   const reasonNote =
     reason === "time"
-      ? "Time expired — your answers were scored automatically."
+      ? "Time expired  |  your answers were scored automatically."
       : `${result.correct} of ${result.total} correct this session.`;
   resultSummary.textContent = stored
     ? reasonNote
@@ -476,7 +487,7 @@ function renderResults(result, questions, reason, stored) {
     if (!q) continue;
     const card = document.createElement("article");
     card.className = `review-item ${item.correct ? "is-correct" : "is-incorrect"}`;
-    const selectedLabels = item.selected.map((i) => q.options[i]).join("; ") || "—";
+    const selectedLabels = item.selected.map((i) => q.options[i]).join("; ") || " | ";
     const answerLabels = q.answers.map((i) => q.options[i]).join("; ");
     card.innerHTML = `
       <header><span class="review-badge">${item.correct ? "Correct" : "Incorrect"}</span><span>${escapeHtml(q.domain)}</span></header>
