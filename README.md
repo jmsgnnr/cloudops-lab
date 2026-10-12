@@ -1,5 +1,7 @@
 # CloudOps Lab — AWS Certification Practice
 
+Created by **[@jmsgnnr](https://github.com/jmsgnnr)**.
+
 Independent, browser-only study and quiz tool for three AWS certification tracks:
 
 | Track | Exam code | Questions |
