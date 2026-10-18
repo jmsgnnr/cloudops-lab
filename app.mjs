@@ -198,7 +198,10 @@ function showView(name) {
   document.body.classList.toggle("incident-active", name === "incident");
   const hero = document.querySelector(".hero");
   if (hero) hero.hidden = name !== "dashboard";
-  if (name === "dashboard") stopTimer();
+  if (name === "dashboard") {
+    stopTimer();
+    refreshCountOptions();
+  }
 
   // View navigation is immediate even when page anchors use smooth scroll.
   const root = document.documentElement;
@@ -544,6 +547,7 @@ function resetProgress() {
   progress = emptyProgress();
   storeProgress(storage, progress);
   updateStats();
+  refreshCountOptions();
   sessionHint.textContent = "Local progress cleared.";
 }
 
