@@ -1,5 +1,7 @@
 # CloudOps Lab / creative and engineering contract
 
+**Codex project start:** read `CODEX_HANDOFF.md` before final review. It records the current local worktree, what is built, what is uncommitted, and why Codex cannot automatically see this ChatGPT conversation. Codex is review-only under our security hold.
+
 Creator: [@jmsgnnr](https://github.com/jmsgnnr). Independent AWS study tool, not an official exam simulator.
 
 ## Visual identity
@@ -15,3 +17,16 @@ The bank has 180 original practice questions, 60 per track. Keep exam domains ba
 ## Team
 
 Cursor for bounded implementation; lead performs deterministic tests and screenshot review. Claude only for specialist escalations; conserve paid credits. No unapproved external packages/network requests. Credit creator as @jmsgnnr, maintain accurate upstream AWS credit. No em dashes or generic promotional filler in public UI writing. Include release evidence in the supervising team's execution ledger and do not claim deployment until GitHub Pages is verified.
+
+## Code Review Rules
+
+### Compatibility and data boundaries
+- Treat the original 180 practice question IDs and the existing browser progress/export shape as compatibility contracts. Flag migrations, renames, scoring changes, or resets that silently invalidate previous progress. The three synthetic incident reports are **separate** from the 216 multiple-choice questions.
+- Never include private premium answer keys, facilitator grading guidance, user credentials, or employer logs in any public browser bundle, JSON download or static site. The three incident pilots must remain explicitly synthetic, ungraded and local-only until a separately approved server-side entitlement system exists.
+
+### Technical accuracy and release truthfulness
+- Challenge AWS assertions where missing context changes the correct remediation. In particular, VPC Flow Logs exclude traffic to the Amazon-provided DNS resolver, Resolver logs do not retroactively recover old lookups, and the IAM/NAT cases require least-privilege and blast-radius reasoning. Require claim-specific official sources for substantive technical fixes.
+- Reject copy that describes planned $10/month or $100/year membership as live billing, promises an official AWS certification/pass predictor, or calls document-based scenarios live AWS labs.
+
+### Review handoff
+- Codex is final code **reviewer only**, not an implementation engineer. Review completed diffs after deterministic tests and real desktop/mobile browser evidence, then report reproducible findings with severity and file/line references. Do not fix, push, approve or merge from the review role. A Codex review is not @jmsgnnr's required personal PR approval.

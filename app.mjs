@@ -1,6 +1,7 @@
 import { TRACKS } from "./data/blueprints.mjs";
 import { LESSONS } from "./data/lessons.mjs";
 import { QUESTIONS } from "./data/questions.mjs";
+import { setupIncidentUI } from "./incident-ui.mjs";
 import {
   selectQuestions,
   scoreQuiz,
@@ -54,8 +55,8 @@ const domainResults = $("domain-results");
 const reviewList = $("review-list");
 const againBtn = $("again-btn");
 
-let storage = localStorage;
-let progress = readProgress(storage);
+let storage = null;
+let progress = emptyProgress();
 let currentTrack = "practitioner";
 
 /** @type {{ questions: import('./data/questions.mjs').QUESTIONS[number][], answers: Record<string, number[]>, index: number, mode: 'practice'|'exam', checked: Set<string>, deadline: number|null, timerId: number|null, lastResult: ReturnType<typeof scoreQuiz>|null }} */
@@ -130,6 +131,7 @@ function renderGuide() {
   const track = TRACKS[currentTrack];
   guideIntro.textContent = track.description;
   officialGuide.href = track.guide;
+  officialGuide.textContent = track.independent ? "OFFICIAL AWS TECHNICAL REFERENCE ↗" : "OFFICIAL EXAM GUIDE ↗";
   retirementNote.hidden = currentTrack !== "networking";
   domainGrid.innerHTML = "";
   const lessons = LESSONS[currentTrack] ?? {};
@@ -171,6 +173,8 @@ function showView(name) {
   dashboard.hidden = name !== "dashboard";
   quizView.hidden = name !== "quiz";
   resultsView.hidden = name !== "results";
+  $("incident-view").hidden = name !== "incident";
+  document.body.classList.toggle("incident-active", name === "incident");
   const hero = document.querySelector(".hero");
   if (hero) hero.hidden = name !== "dashboard";
   if (name === "dashboard") stopTimer();
@@ -183,6 +187,7 @@ function showView(name) {
   root.style.scrollBehavior = previous;
   if (name === "quiz") quizTitle.focus({ preventScroll: true });
   if (name === "results") $("results-title").focus({ preventScroll: true });
+  if (name === "incident") $("incident-title").focus({ preventScroll: true });
 }
 
 function stopTimer() {
@@ -545,6 +550,7 @@ function onKeyDown(event) {
 
 function initStorageFallback() {
   try {
+    storage = window.localStorage;
     const probe = "__storage_probe__";
     storage.setItem(probe, "1");
     storage.removeItem(probe);
@@ -588,6 +594,7 @@ function init() {
   document.addEventListener("keydown", onKeyDown);
 
   setActiveTrack(currentTrack);
+  setupIncidentUI(showView);
 }
 
 init();

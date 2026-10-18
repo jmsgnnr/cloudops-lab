@@ -1,0 +1,131 @@
+import { item } from "./question-utils.mjs";
+
+// Independent original scenarios. SAP-C02 and DOP-C02 are study topics,
+// not official AWS exam questions or claims of exam equivalence.
+const a = (id, domain, stem, options, answers, explanation) =>
+  item(id, "architecture", domain, "advanced", stem, options, answers, explanation);
+const d = (id, domain, stem, options, answers, explanation) =>
+  item(id, "devops", domain, "advanced", stem, options, answers, explanation);
+const s = (id, domain, stem, options, answers, explanation) =>
+  item(id, "fieldsecurity", domain, "advanced", stem, options, answers, explanation);
+
+export const architectureChallenges = [
+  a("sapx-01", "Organizational Complexity", "An organization must deny use of an unapproved AWS Region across member accounts, including administrators, while retaining approved central services. Which control is most appropriate?",
+    ["Attach an SCP with regional deny conditions and documented exceptions to applicable organizational units", "Add a permission boundary to the management account root user", "Publish an S3 bucket policy in each account", "Rely on an AWS Budgets alert for each Region"], [0],
+    "An applicable SCP can constrain member-account principals even when their identity policies allow an action. Region restrictions need careful exceptions for global services; a budget alert is only detective."),
+  a("sapx-02", "Organizational Complexity", "Two acquired companies each use 10.0.0.0/16 in production VPCs. Workloads must communicate without renumbering immediately. Which designs can bridge the overlap safely? Select TWO.",
+    ["Use an application-layer proxy with non-overlapping endpoints", "Use a deliberately designed translation layer with non-overlapping address presentation", "Attach both VPCs to a transit gateway and rely on route propagation to resolve identical prefixes", "Add VPC peering between the overlapping CIDR blocks"], [0,1],
+    "Overlapping networks cannot be made unambiguous merely by peering or transit gateway propagation. Proxy or NAT/translation patterns can bridge selected traffic while a longer-term renumbering plan is prepared."),
+  a("sapx-03", "Organizational Complexity", "A central networking account operates a transit gateway for many application accounts. New VPCs must be attached with governed sharing and separate production and development routing. What is the strongest starting architecture?",
+    ["Share the transit gateway using AWS RAM, control attachment acceptance, and use separate TGW route tables", "Peer every VPC and assume route transitivity", "Use a single TGW route table with default propagation to all environments", "Grant every application account administrator access to the networking account"], [0],
+    "RAM shares a transit gateway across accounts without transferring ownership. Attachment controls and explicit route-table segmentation prevent accidental cross-environment reachability."),
+  a("sapx-04", "New Solutions", "Private workloads in VPCs must resolve on-premises private DNS names, and on-premises clients must resolve private Route 53 zones. Which architecture covers both directions?",
+    ["Route 53 Resolver outbound endpoints and forwarding rules plus inbound endpoints for on-premises queries", "An internet gateway and public hosted zone for private records", "Only a Route 53 Resolver inbound endpoint for all lookups", "A CloudFront distribution that proxies DNS packets"], [0],
+    "Outbound Resolver endpoints forward VPC queries to on-premises resolvers, while inbound endpoints receive on-premises queries for AWS private resolution. One direction does not cover the other."),
+  a("sapx-05", "New Solutions", "A checkout service receives unpredictable bursts. Orders must be accepted quickly and processed at-least-once, with failed messages available for investigation. Which design best fits?",
+    ["Persist requests in SQS, process with idempotent workers, and configure a dead-letter queue", "Scale a single EC2 instance vertically and return success before persisting the order", "Deliver each request through a DNS round-robin record with no queue", "Use an SNS topic alone as the durable work queue without consumers"], [0],
+    "SQS absorbs bursts and supports retries, but delivery can repeat. Idempotent consumers and a DLQ protect against duplicates and poison messages; a DNS policy is not a durable work queue."),
+  a("sapx-06", "New Solutions", "A globally distributed read-heavy site needs fast static assets and resilience to one origin failure. Which measures directly address this? Select TWO.",
+    ["Cache eligible assets with CloudFront near viewers", "Configure a supported CloudFront origin failover group for eligible requests", "Use a single-AZ EC2 origin without health monitoring", "Disable every cache policy and force each request to the origin"], [0,1],
+    "Edge caching reduces repeated origin trips, and origin failover helps on supported requests and failure conditions. Neither choice guarantees zero-downtime writes or a globally consistent database."),
+  a("sapx-07", "New Solutions", "An application requires cross-Region read locality for a relational database, but stakeholders also demand zero data loss during an unplanned Region failure. What should the architect communicate?",
+    ["Cross-Region asynchronous replication can lag; zero RPO is not guaranteed without a separately proven synchronous strategy", "Aurora Global Database always guarantees zero RPO during unplanned failover", "A read replica prevents all committed writes from being lost during an unexpected Region outage", "Multi-AZ within one Region is sufficient to survive permanent loss of that Region"], [0],
+    "Asynchronous cross-Region replicas may be behind the writer when disaster strikes. The RPO must be stated explicitly and tested rather than implying zero loss from global replication."),
+  a("sapx-08", "Continuous Improvement", "A large workload sends heavy traffic to S3 through a NAT gateway. Security requires private AWS-network paths and cost teams want to reduce NAT processing. What should be evaluated first?",
+    ["An S3 gateway VPC endpoint with route-table and access-policy review", "A larger NAT gateway with the same S3 routing", "Enabling VPC Flow Logs at every subnet as the sole mitigation", "An internet gateway attached directly to each private instance"], [0],
+    "An S3 gateway endpoint can route supported S3 access without NAT gateway processing and avoids public-address requirements. Confirm routing, endpoint policy and cross-Region constraints first."),
+  a("sapx-09", "Continuous Improvement", "A multi-AZ application experiences p99 latency spikes while mean latency looks stable. Which data would most directly support identifying the bottleneck?",
+    ["Per-hop tracing with percentile latency, downstream saturation and error metrics", "Only monthly blended AWS billing totals", "The account's IAM password policy", "A single average CPU metric sampled daily"], [0],
+    "High-percentile latency can reveal tail amplification hidden by an average. Distributed traces and service saturation/error signals help isolate the slow downstream dependency."),
+  a("sapx-10", "Continuous Improvement", "A three-tier application has durable database storage but stores session state on a single application instance. Scaling or replacement logs users out. Which changes should be prioritized? Select TWO.",
+    ["Move session state into a suitable shared or managed data store", "Make application instances replaceable and validate horizontal scaling", "Disable load-balancer health checks indefinitely", "Make the original application server larger without removing state coupling"], [0,1],
+    "Externalizing shared state and designing stateless, disposable application instances permits scaling and failure recovery. Vertical scaling alone keeps a single-instance dependency."),
+  a("sapx-11", "Migration and Modernization", "A company is migrating an active on-premises relational database with hours, not days, of permitted cutover downtime. What combination best minimizes the synchronization gap?",
+    ["Perform initial migration and then ongoing change data capture until a controlled cutover", "Copy one backup several weeks before cutover and ignore writes since", "Change application DNS without copying database state", "Move only the database schema and assume data follows automatically"], [0],
+    "Bulk migration followed by CDC keeps the target converging as source transactions continue. Schema conversion, replication lag, consistency checks and rollback still need explicit cutover plans."),
+  a("sapx-12", "Migration and Modernization", "A large enterprise needs private hybrid connectivity from on-premises networks to many VPCs through a central transit gateway. Which Direct Connect construct best aligns?",
+    ["A transit virtual interface through a Direct Connect gateway associated with the transit gateway", "A public virtual interface attached directly to private subnets", "An internet gateway as the Direct Connect termination point", "A private virtual interface attached straight to a transit gateway with no gateway association"], [0],
+    "A transit VIF with Direct Connect gateway supports TGW-oriented hybrid connectivity. Private VIF targets a VGW/DX gateway path, not an attachment directly to a TGW.")
+];
+
+export const devopsChallenges = [
+  d("dopx-01", "SDLC Automation", "A production service must deploy a new version, watch a latency alarm, and automatically return traffic to the old version if deployment health degrades. Which approach is strongest?",
+    ["A blue/green release with health checks and alarm-driven rollback", "Overwrite the running instances in place with no checkpoint", "Disable deployment alarms to reduce false positives", "Always promote after the first instance succeeds"], [0],
+    "Blue/green deployment preserves a known-good target and supports measured traffic shifting and rollback. Overwriting the only environment makes recovery slower and less predictable."),
+  d("dopx-02", "SDLC Automation", "The same container image passed testing but production fetched a newer image with an unchanged tag. Which control most directly prevents this class of drift?",
+    ["Deploy an immutable image digest promoted across environments", "Set the image tag to latest in every stage", "Disable the container registry vulnerability scanner", "Rebuild from a moving base image at each deployment stage"], [0],
+    "Pinning and promoting an image digest ensures production pulls the exact artifact that was tested. Mutable tags and stage-specific rebuilds undermine artifact identity."),
+  d("dopx-03", "SDLC Automation", "A team wants to minimize privileged CI credentials while deploying to AWS from a trusted external OIDC-capable CI provider. Which controls should they implement? Select TWO.",
+    ["Federate short-lived credentials through STS with constrained trust conditions", "Limit the deployment role's actions and resource scope", "Store a permanent administrator access key in the public repository", "Allow any identity token from the provider to assume the role without claim constraints"], [0,1],
+    "OIDC federation avoids persistent CI secrets, while issuer, audience and repository/branch claim conditions restrict who can assume the role. Least-privilege IAM then limits impact."),
+  d("dopx-04", "Configuration and IaC", "A critical stack was changed manually outside Infrastructure as Code. What process best reconciles it without surprising production?",
+    ["Detect drift, assess the impact, and either import/adopt the change or restore the declared state through review", "Immediately destroy and recreate every resource without a plan", "Delete IaC state files and guess at resource IDs", "Assume the deployment template always describes the actual environment"], [0],
+    "Drift detection reveals mismatches, but remediation requires explicit ownership, change review and safe rollout. Blind re-creation may destroy stateful resources."),
+  d("dopx-05", "Configuration and IaC", "Multiple teams apply Terraform concurrently against a production environment. What controls are needed to avoid conflicting updates? Select TWO.",
+    ["Use a shared remote state backend with locking support", "Serialize approvals and apply jobs for the same state/workspace", "Store one independent local copy of state per developer and merge by hand", "Allow two concurrent applies to the same unlocked state"], [0,1],
+    "State locking and a serialized deployment pipeline protect a shared desired state from competing writes. Concurrent unlocked applies can corrupt expectations and create real infrastructure drift."),
+  d("dopx-06", "Resilient Solutions", "SQS retries occasionally deliver the same order event twice. A consumer currently creates two charges. What is the primary application-level fix?",
+    ["Make the charge operation idempotent using a stable business request key", "Assume SQS standard queues promise exactly-once delivery", "Increase the visibility timeout to several days and ignore duplicates", "Turn off retries and accept lost events"], [0],
+    "Standard queues can deliver at least once. Idempotency recorded at the business operation boundary prevents duplicate financial actions, while timeout tuning alone cannot guarantee uniqueness."),
+  d("dopx-07", "Resilient Solutions", "An RDS Multi-AZ primary becomes unavailable. Which expectation is appropriate when designing application recovery?",
+    ["The service can fail over to a standby, but clients may need to retry connections and transactions", "All active SQL transactions are guaranteed to continue without interruption", "Multi-AZ automatically creates a readable standby for arbitrary read scaling", "The application should keep its old hardcoded IP permanently"], [0],
+    "Multi-AZ improves availability but does not make client connections immortal. Applications must use the proper endpoint and handle disconnects, retries and transaction outcomes safely."),
+  d("dopx-08", "Monitoring and Logging", "Request failures appear only at one downstream service, yet frontend error rates fluctuate. Which observability combination best reveals the causal path?",
+    ["Correlated trace IDs, structured logs, request/error metrics and dependency tracing", "Only a CloudWatch dashboard showing account spend", "Only daily averages of frontend CPU usage", "Turning off distributed tracing to reduce service overhead"], [0],
+    "End-to-end correlation connects failures across service boundaries. Logs establish detail, metrics quantify impact, and traces explain which downstream hop caused latency or errors."),
+  d("dopx-09", "Monitoring and Logging", "A deployment increases p95 request duration from 180 ms to 900 ms without materially changing average CPU. Which alarms are most informative? Select TWO.",
+    ["A service-level p95 or p99 latency threshold", "Downstream timeout/error-rate and saturation indicators", "A single static account billing alarm only", "An alarm on the number of available IAM users"], [0,1],
+    "Latency percentiles plus dependency errors and saturation reveal customer-facing regressions that average CPU obscures. Business-impact signals should drive rollback decisions."),
+  d("dopx-10", "Incident and Event Response", "An auto-remediation Lambda repeatedly restarts healthy instances after receiving duplicate operational events. What should the response workflow add?",
+    ["Event deduplication, bounded retries, safety checks and an auditable manual override", "A loop with unlimited restarts and no history", "An administrator access key hardcoded into every event", "Disabling all monitoring until the next quarterly review"], [0],
+    "Automations must be idempotent and bounded with clear preconditions and escalation. Duplicate events are normal in many event-driven architectures and must not trigger repeated destructive remediation."),
+  d("dopx-11", "Security and Compliance", "A CI runner needs to deploy to a specific production service, not administer the entire AWS account. Which IAM approach follows least privilege?",
+    ["Assume a dedicated role restricted to the required deployment actions and resources", "Attach AdministratorAccess to the shared CI role", "Create an IAM user with a never-expiring access key in source control", "Allow wildcard sts:AssumeRole to every account without trust controls"], [0],
+    "Separate scoped deployment roles limit the blast radius of compromised automation. Admin grants and long-lived repository secrets expose far more than the release actually needs."),
+  d("dopx-12", "Security and Compliance", "Before promoting an application artifact, the team needs confidence it is the signed build from an approved pipeline. What is the strongest verification step?",
+    ["Validate the signed artifact provenance against a trusted issuer and expected source/revision", "Accept any file whose name ends with production.zip", "Trust the latest object uploaded by any user to a public bucket", "Disable audit logs during deployment"], [0],
+    "Verifiable artifact provenance ties a digest to the trusted build process and intended source. Names, tags and bucket location do not independently establish artifact integrity.")
+];
+
+export const securityFieldChallenges = [
+  s("secx-01", "Detection and Triage", "CloudTrail shows a PutObject operation but investigators need evidence of which principal downloaded sensitive S3 objects last week. Standard management events are enabled. What gap matters?",
+    ["Object-level S3 data events must have been enabled for the relevant scope", "CloudTrail management events always capture every S3 GetObject", "VPC Flow Logs disclose the requesting IAM principal for each S3 object", "S3 server access can be reconstructed perfectly even with no historical logging"], [0],
+    "S3 object API activity is a CloudTrail data event and requires appropriate prior event selectors or equivalent event data stores. Logging cannot be retroactively invented after an incident."),
+  s("secx-02", "Detection and Triage", "An Inspector finding reports an unpatched package, while GuardDuty reports a suspicious credential access pattern. What distinguishes the signals?",
+    ["Inspector identifies exposure/vulnerabilities; GuardDuty is primarily threat-detection telemetry", "Inspector automatically proves exploitation occurred", "GuardDuty proves a vulnerable package was patched", "Both services replace investigation and asset ownership"], [0],
+    "Inspector and GuardDuty answer different questions. A vulnerable package is not proof of exploitation, and a suspicious behavior finding requires context and additional validation."),
+  s("secx-03", "Detection and Triage", "A third-party classifier downgrades every critical Inspector vulnerability because a host has no public IP. What is the appropriate analyst response?",
+    ["Check actual reachability, exploitability, workload role and compensating controls before changing severity", "Approve every downgrade because private instances cannot be attacked", "Delete the Inspector findings to remove noise", "Treat the classifier score as the authoritative AWS finding"], [0],
+    "Private addressing alone does not remove lateral movement, vulnerable dependencies or identity-based exposure. Evidence-based context can change priority, not erase source severity without justification."),
+  s("secx-04", "Containment and Evidence", "An attacker used an assumed IAM role and may retain temporary role credentials. Changing the role policy stops some access, but the team needs a broad emergency session revocation. Which mechanism applies?",
+    ["Apply the AWS-supported revoke-active-sessions pattern to deny credentials issued before a cutoff time", "Rotate an unrelated EC2 SSH host key", "Delete a CloudWatch alarm that mentioned the role", "Assume changing a role's display name immediately invalidates every STS token"], [0],
+    "Role sessions are temporary credentials; policy-based session revocation can explicitly deny older sessions. Credential response must consider all affected role paths and document the cutoff."),
+  s("secx-05", "Containment and Evidence", "A live EC2 instance may contain volatile malware artifacts. The team plans an EBS snapshot and immediate termination. What important evidence concern should stop an automatic termination?",
+    ["An EBS snapshot does not preserve RAM or every transient process/network artifact", "EBS snapshots automatically capture volatile memory and all open socket state", "A snapshot means CloudTrail records are no longer useful", "Termination is always required before collecting any evidence"], [0],
+    "Disk snapshots preserve block-level disk state, not volatile memory. Collection order should be driven by evidence goals, legal requirements and containment risk before the instance is terminated."),
+  s("secx-06", "Containment and Evidence", "A compromised Lambda function is being invoked continuously by an EventBridge rule. Investigators need to stop further execution while preserving code, configuration and logs. Which actions fit? Select TWO.",
+    ["Disable the triggering EventBridge rule and assess any other invocation paths", "Preserve function configuration, relevant versions and CloudWatch logs with documented access", "Delete the function and its logs immediately", "Expand the function execution role to AdministratorAccess"], [0,1],
+    "Disabling identified triggers limits repeated invocation; preserving code and logs supports analysis. Other triggers and permissions need review, while deletion destroys useful evidence."),
+  s("secx-07", "Identity and Key Control", "An IAM policy allows kms:Decrypt for a key in another AWS account, but the call is denied. What must also permit the cross-account operation?",
+    ["The key's policy in the owning account, with any applicable grants and conditions", "The calling user's console color theme", "Only a security-group rule on an EC2 instance", "Any SCP allow statement in the calling account, which independently grants KMS access"], [0],
+    "Cross-account KMS operations require resource-side key policy authorization and caller-side permissions, subject to applicable policies. An identity-policy allow alone is insufficient."),
+  s("secx-08", "Identity and Key Control", "A SaaS vendor requests role assumption in every customer account. Which safeguards reduce confused-deputy and overprivilege risks? Select TWO.",
+    ["A unique customer-specific external ID checked in each role trust policy", "A minimal vendor-assumable role with carefully scoped resource permissions", "Trust every AWS principal without a condition", "Attach AdministratorAccess so future features cannot fail"], [0,1],
+    "Unique external IDs help bind vendor requests to the intended customer; narrow permissions constrain impact. Neither control replaces vendor vetting or ongoing access reviews."),
+  s("secx-09", "Identity and Key Control", "A member account administrator tries to allow an action that an applicable AWS Organizations SCP explicitly denies. What is the result?",
+    ["The operation remains denied despite the identity-policy allow", "An IAM allow always overrides SCP restrictions", "The operation succeeds if called through AWS CLI rather than the console", "Root user of the member account automatically overrides the SCP"], [0],
+    "SCPs define the maximum available permissions for affected principals and apply explicit denies before an identity-policy allow can succeed. Console versus CLI is not an exception."),
+  s("secx-10", "Network and Data Defense", "VPC Flow Logs show ACCEPT for a connection attempt, but clients report an application timeout. Which interpretation is sound?",
+    ["Network acceptance does not prove the application completed a successful request", "ACCEPT guarantees a successful TLS handshake and HTTP response", "ACCEPT always identifies the IAM principal behind the request", "Flow Logs contain every application request body"], [0],
+    "Flow Log ACCEPT reflects network-level handling at the capture point; application health can still fail due to listeners, backend errors, TLS, timing or downstream dependencies."),
+  s("secx-11", "Network and Data Defense", "A centralized inspection VPC receives traffic from spoke VPCs through a transit gateway, but return packets bypass inspection and sessions fail. Which must the team validate? Select TWO.",
+    ["Symmetric forward and return routing through intended inspection appliances", "Transit gateway route-table association/propagation and appliance-mode requirements where applicable", "Only public DNS TTL values, ignoring routes", "Turning off all security groups permanently"], [0,1],
+    "Stateful inspection requires symmetric flows, and TGW route-table plus appliance-mode design affects appliance affinity. DNS alone cannot repair an asymmetric packet path."),
+  s("secx-12", "Network and Data Defense", "An S3 bucket permits objects with SSE-KMS but a cross-account processing role still cannot read them. Which checks should come first?",
+    ["S3 access permissions and the KMS key policy/identity permissions for Decrypt", "Whether a public website endpoint is enabled for the bucket", "Whether the consumer has an EC2 public IPv4 address", "Whether the consumer increased its CloudWatch Logs retention"], [0],
+    "Reading SSE-KMS objects requires both the necessary S3 permissions and KMS decrypt authorization. Bucket visibility and network location alone cannot grant access to the KMS key.")
+];
+
+export const ADVANCED_QUESTIONS = Object.freeze([
+  ...architectureChallenges, ...devopsChallenges, ...securityFieldChallenges
+]);

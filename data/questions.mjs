@@ -4,6 +4,7 @@ import { securityQuestions } from "./security.mjs";
 import { securityExtendedQuestions } from "./security-extended.mjs";
 import { networkingQuestions } from "./networking.mjs";
 import { networkingExtendedQuestions } from "./networking-extended.mjs";
+import { ADVANCED_QUESTIONS } from "./advanced-challenges.mjs";
 
 export const practitionerBank = Object.freeze([
   ...practitionerQuestions,
@@ -15,5 +16,6 @@ export const networkingBank = Object.freeze([...networkingQuestions, ...networki
 export const QUESTIONS = Object.freeze([
   ...practitionerBank,
   ...securityBank,
-  ...networkingBank
+  ...networkingBank,
+  ...ADVANCED_QUESTIONS
 ]);
