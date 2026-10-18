@@ -105,6 +105,13 @@ function exportIncident(event) {
 }
 
 export function setupIncidentUI(onView) {
+  // Browser navigation is distinct from the in-page exit/reset controls.
+  // Browsers show their own confirmation text and may suppress it without user activation.
+  window.addEventListener("beforeunload", (event) => {
+    if (!hasUnsavedAnswers()) return;
+    event.preventDefault();
+    event.returnValue = "";
+  });
   renderCatalog(onView);
   $("incident-response").addEventListener("submit", exportIncident);
   $("incident-reset").addEventListener("click", () => {

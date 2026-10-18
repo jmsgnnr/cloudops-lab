@@ -28,4 +28,4 @@ Local CLI has been inspected; `codex review --help` confirms `--uncommitted`, `-
 
 Alternative: Use Codex PR Code Review on an authorized GitHub draft PR once owner-enabled in Codex, using `@codex review`; don't assume installed or successful until the report appears. This may be performed off the owner Windows principal but still needs repository-access approval and a separate owner-approved draft-PR push.
 
-Review is a gate, not a GitHub approval. Handoff status until actual execution: **CODEX REVIEW PENDING**.
+Review is a gate, not a GitHub approval. **Initial Codex review completed** on [draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2): P1 distractor quality, P2 preview session size, P2 incomplete incident report navigation. A revised candidate is being prepared and must receive a fresh Codex review; owner approval and release remain separate.

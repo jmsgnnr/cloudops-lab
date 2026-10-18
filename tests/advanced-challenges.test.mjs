@@ -24,6 +24,18 @@ describe("engineering challenge pilots", () => {
       assert.ok(qs.every(q => q.stem.length > 60 && q.explanation.length > 100));
     }
   });
+  it("requires detailed, domain-relevant distractors in each advanced pilot", () => {
+    for (const track of Object.keys(newTracks)) {
+      for (const q of QUESTIONS.filter(q => q.track === track)) {
+        const distractors = q.options.filter((_, index) => !q.answers.includes(index));
+        assert.ok(distractors.length >= 2, q.id);
+        assert.ok(distractors.every(option => option.length >= 55), q.id);
+        assert.ok(distractors.every(option =>
+          !/console color theme|IAM password policy|disable all audit logs|turn off all security groups/i.test(option)
+        ), q.id);
+      }
+    }
+  });
   it("covers all named domains and all supporting lessons", () => {
     for (const [track, expected] of Object.entries(newTracks)) {
       assert.equal(TRACKS[track].code, expected.code);

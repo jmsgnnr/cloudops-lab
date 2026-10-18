@@ -111,6 +111,7 @@ function setActiveTrack(trackId) {
     card.setAttribute("aria-pressed", active ? "true" : "false");
   }
   renderDomainOptions();
+  refreshCountOptions();
   renderGuide();
   updateStats();
   sessionHint.textContent = `Ready for ${TRACKS[trackId].code}  |  configure a session and start.`;
@@ -125,6 +126,26 @@ function renderDomainOptions() {
     opt.textContent = d.id;
     domainSelect.appendChild(opt);
   }
+}
+
+function refreshCountOptions() {
+  const focus = focusSelect.value;
+  const domain = domainSelect.value;
+  const saved = focus === "missed" ? new Set(progress.missed) :
+    focus === "bookmarks" ? new Set(progress.bookmarks) : null;
+  const available = QUESTIONS.filter((q) =>
+    q.track === currentTrack &&
+    (domain === "all" || q.domain === domain) &&
+    (!saved || saved.has(q.id))
+  ).length;
+  for (const option of countSelect.options) {
+    if (option.value === "all") continue;
+    option.disabled = Number(option.value) > available;
+  }
+  if (countSelect.selectedOptions[0]?.disabled) {
+    countSelect.value = "all";
+  }
+  return available;
 }
 
 function renderGuide() {
@@ -582,6 +603,14 @@ function init() {
     if (card?.dataset.track) setActiveTrack(card.dataset.track);
   });
 
+  const refreshSessionAvailability = () => {
+    const count = refreshCountOptions();
+    sessionHint.textContent = count ?
+      `${count} matching question${count === 1 ? "" : "s"} available for this session.` :
+      formatPoolHint(focusSelect.value, currentTrack, domainSelect.value);
+  };
+  domainSelect.addEventListener("change", refreshSessionAvailability);
+  focusSelect.addEventListener("change", refreshSessionAvailability);
   sessionForm.addEventListener("submit", startSession);
   checkBtn.addEventListener("click", onCheck);
   nextBtn.addEventListener("click", onNext);

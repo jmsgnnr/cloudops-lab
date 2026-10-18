@@ -1,12 +1,12 @@
 # Codex handoff / CloudLabs (CloudOps Lab)
 
-**Updated:** 2026-10-18. **Status:** local prototype, no completed Codex review, no publication of this feature branch. This is a project context snapshot, not conversation memory.
+**Updated:** 2026-10-18. **Status:** bot-authored [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) is open; Codex completed its initial review and identified three findings. Corrections are being validated for a second complete review. No merge or deployment. This is project context, not synchronized chat memory.
 
 ## This is the correct local project
 
 - GitHub repository: `jmsgnnr/cloudops-lab` (public published baseline).
 - Local worktree: the isolated `cloudops-premium-01/workspace` checkout on the owner-authorized development machine; open this repository root, not a different clone.
-- Current branch: `feature/engineering-challenges-pricing`, uncommitted changes. **Do not assume changes are on GitHub**.
+- Current branch: `feature/engineering-challenges-pricing`, committed and published initially as `c4adc33` on Draft PR #2. Subsequent corrections are local until pushed and independently re-reviewed.
 - Engineering governance source is a **separate private local repository**, `jmsgnnr/agentic-workspace`; refer to its `AGENTS.md` and security boundary only if that repository is in your authorized scope.
 
 ## Product decisions
@@ -17,11 +17,11 @@
 - Planned membership pricing **$10/month, $100/year**. Neither checkout nor auth is activated. Do not claim income or paying users.
 - Facilitator answer key resides outside the public Git tree. **Do not copy answer keys into public JavaScript, repo, prompt, or web PR.**
 
-## Verified engineering state, not a Codex review
+## Verified engineering state and first Codex review
 
-- Node suite last run **36/36 passed** (2026-10-18); tests under `tests/`.
-- Desktop/mobile Playwright case walkthrough, export, no external browser requests, restricted localStorage fallback verified previously. The browser evidence is in sibling `..\screenshots` and local QA scripts outside this repo. Distinguish old evidence from newly rerun QA.
-- Modified code, docs and safety rules remain **local uncommitted**; no CloudLabs pull request has yet been created; Codex has **not** reviewed this revision.
+- Node suite last run **37/37 passed** (2026-10-18); tests under `tests/`. Added regression coverage for contextually relevant advanced distractors.
+- Desktop/mobile Playwright practice and incident walkthroughs rerun successfully on October 18, including JSON export, no off-origin requests, and 390px responsive layout. Additional browser regression verified disabled impossible session sizes and `beforeunload` protection of incomplete incident drafts. Harness scripts and screenshots are in a sibling local QA directory outside the public Git tree.
+- **Actual first Codex review:** [review summary and three findings on PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2). P1: irrelevant advanced distractors; P2: impossible question counts; P2: unsaved draft loss on navigation. All three have candidate corrections locally and must be re-reviewed after publishing revised commit. Do not claim they are accepted or production-ready until second review.
 - Relevant documents: `docs/prototype-acceptance.md`, `docs/pilot-scenarios-learner.md`, `docs/membership-architecture.md`, `docs/codex-final-review-handoff.md`.
 - For publisher workflow / GitHub review prerequisites, read the separate workspace's `docs/cloudlabs-codex-first-review-staging.md` and `docs/codex-github-activation.md`.
 
