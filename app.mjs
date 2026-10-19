@@ -432,6 +432,15 @@ function showPracticeFeedback(q) {
     source.className = "question-source-link";
     feedback.append(document.createTextNode("  "), source);
   }
+  if (q.referenceSupplement && /^https:\/\//.test(q.referenceSupplement)) {
+    const supplement = document.createElement("a");
+    supplement.href = q.referenceSupplement;
+    supplement.target = "_blank";
+    supplement.rel = "noopener noreferrer";
+    supplement.textContent = "Inspector technical reference ↗";
+    supplement.className = "question-source-link";
+    feedback.append(document.createTextNode("  "), supplement);
+  }
 }
 
 function onCheck() {

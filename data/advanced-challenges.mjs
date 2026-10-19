@@ -32,7 +32,7 @@ export const ADVANCED_REFERENCES = Object.freeze({
   "dopx-11": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
   "dopx-12": "https://docs.github.com/en/actions/concepts/security/artifact-attestations",
   "secx-01": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html",
-  "secx-02": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html",
+  "secx-02": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html",
   "secx-03": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html",
   "secx-04": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_revoke-sessions.html",
   "secx-05": "https://docs.aws.amazon.com/solutions/latest/automated-forensics-orchestrator-for-amazon-ec2/forensic-memory-and-disk-acquisition-service.html",
@@ -45,10 +45,16 @@ export const ADVANCED_REFERENCES = Object.freeze({
   "secx-12": "https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-modifying-external-accounts.html"
 });
 
+export const ADVANCED_REFERENCE_SUPPLEMENTS = Object.freeze({
+  "secx-02": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html"
+});
+
 function advancedItem(id, track, domain, stem, options, answers, explanation) {
   const reference = ADVANCED_REFERENCES[id];
   if (!reference) throw new Error("Missing advanced technical reference for " + id);
-  return { ...item(id, track, domain, "advanced", stem, options, answers, explanation), reference };
+  const base = { ...item(id, track, domain, "advanced", stem, options, answers, explanation), reference };
+  const referenceSupplement = ADVANCED_REFERENCE_SUPPLEMENTS[id];
+  return referenceSupplement ? { ...base, referenceSupplement } : base;
 }
 const a = (id, domain, stem, options, answers, explanation) =>
   advancedItem(id, "architecture", domain, stem, options, answers, explanation);

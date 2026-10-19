@@ -4,7 +4,7 @@ import { TRACKS } from "../data/blueprints.mjs";
 import { QUESTIONS } from "../data/questions.mjs";
 import { LESSONS } from "../data/lessons.mjs";
 import { selectQuestions, shuffleQuestionChoices, evaluate } from "../engine.mjs";
-import { ADVANCED_REFERENCES } from "../data/advanced-challenges.mjs";
+import { ADVANCED_REFERENCES, ADVANCED_REFERENCE_SUPPLEMENTS } from "../data/advanced-challenges.mjs";
 
 const newTracks = {
   architecture: { code: "SAP-C02", counts: [3, 4, 3, 2], multi: 3 },
@@ -59,6 +59,21 @@ describe("engineering challenge pilots", () => {
       ADVANCED_REFERENCES["dopx-12"],
       "https://docs.github.com/en/actions/concepts/security/artifact-attestations"
     );
+  });
+  it("cites GuardDuty threat detection for secx-02 and retains Inspector findings documentation", () => {
+    assert.equal(
+      ADVANCED_REFERENCES["secx-02"],
+      "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+    );
+    assert.equal(
+      ADVANCED_REFERENCE_SUPPLEMENTS["secx-02"],
+      "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html"
+    );
+    const secx02 = QUESTIONS.find(q => q.id === "secx-02");
+    assert.ok(secx02);
+    assert.equal(secx02.reference, ADVANCED_REFERENCES["secx-02"]);
+    assert.equal(secx02.referenceSupplement, ADVANCED_REFERENCE_SUPPLEMENTS["secx-02"]);
+    assert.ok(!secx02.reference.includes("inspector"));
   });
   it("cites the actual remediation for duplicate events and trigger containment", () => {
     assert.equal(
