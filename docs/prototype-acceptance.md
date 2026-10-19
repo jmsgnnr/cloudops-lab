@@ -75,3 +75,9 @@ Targeted Chrome regression with ten preseeded bookmarks: choose ten-bookmark ses
 - Source-link Chrome regression: clicked through practice feedback on architecture, DevOps, and security tracks; official HTTPS source links were displayed, opened in a new browser tab when activated, and used `rel="noopener noreferrer"`. Page errors 0; unexpected off-origin requests 0.
 - All 36 official AWS / HashiCorp question-specific documentation URLs returned HTTP 200 in a read-only check. Individual technical correctness and pedagogical distractor quality still require expert assessment; an HTTP response code does not prove those claims.
 - Codex GitHub PR review remains independent; no production merge, deployment, subscription or live AWS change is authorized.
+
+## 2026-10-18: Fourth Codex review — specific source alignment
+
+- Codex reviewed `0c2cd83` on [CloudLabs Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) and flagged P2: `dopx-10` and `secx-06` linked to Lambda concurrency documentation, which does not support the credited event-deduplication and EventBridge-rule containment answers.
+- Updated `dopx-10` to AWS Lambda best practices (idempotent code and handling duplicate events) and `secx-06` to the EventBridge `DisableRule` API. Both official URLs were independently discovered in current AWS docs. Added a focused regression test prohibiting the previous unrelated concurrency reference.
+- Full CloudLabs Node suite: **39/39 PASS**; JS syntax and `git diff --check` PASS. Existing browser QA on the previous revision validated all three advanced source links and separate incident workflows; exact source replacements are covered by the new unit test. Another independent Codex review is needed before owner approval.

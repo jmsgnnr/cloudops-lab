@@ -51,6 +51,18 @@ describe("engineering challenge pilots", () => {
       assert.ok(url.pathname.split("/").length >= 4, q.id);
     }
   });
+  it("cites the actual remediation for duplicate events and trigger containment", () => {
+    assert.equal(
+      ADVANCED_REFERENCES["dopx-10"],
+      "https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html"
+    );
+    assert.equal(
+      ADVANCED_REFERENCES["secx-06"],
+      "https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_DisableRule.html"
+    );
+    assert.ok(!ADVANCED_REFERENCES["dopx-10"].includes("configuration-concurrency"));
+    assert.ok(!ADVANCED_REFERENCES["secx-06"].includes("configuration-concurrency"));
+  });
   it("covers all named domains and all supporting lessons", () => {
     for (const [track, expected] of Object.entries(newTracks)) {
       assert.equal(TRACKS[track].code, expected.code);

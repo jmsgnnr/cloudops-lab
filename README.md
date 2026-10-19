@@ -23,7 +23,7 @@ Three additional **interactive synthetic incident exercises** are separate from 
 
 The learner scenario specification is `docs/pilot-scenarios-learner.md`. The facilitator grading key is **intentionally outside the repository**, not in the publicly served JavaScript. Review the scenarios with an AWS subject-matter expert and pilot learners before suggesting reliable outcomes. The UI and new static cases must not be mistaken for protected premium content.
 
-Codex GitHub Code Review is **operational**. [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has undergone three independent review passes as of October 18, 2026, with findings routed back through engineering. A further review is required for the latest documentation/reference corrections; passing tests and Codex feedback do **not** substitute for owner PR approval or deployment authorization. See `docs/codex-final-review-handoff.md`.
+Codex GitHub Code Review is **operational**. [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) contains the authoritative review history and current findings. Corrections are returned to engineering and retested. Passing tests or a completed Codex review never substitute for the owner's PR approval and separate deployment authorization. See `docs/codex-final-review-handoff.md`.
 
 **Not affiliated with or endorsed by Amazon Web Services.** Original practice scenarios are based on published AWS technical concepts. Exam guides and domain weights guide study metadata, but the shortened previews do not match actual exam length, scoring or content distribution.
 
