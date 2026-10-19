@@ -3,8 +3,9 @@ import { item } from "./question-utils.mjs";
 // Independent original scenarios. SAP-C02 and DOP-C02 are study topics,
 // not official AWS exam questions or claims of exam equivalence.
 // Each original advanced scenario points to a claim-specific official technical
-// reference, rather than the broad exam guide. HashiCorp documents cover
-// Terraform-specific behaviors; other sources are AWS service documentation.
+// reference, rather than a broad exam guide. Terraform references use
+// HashiCorp docs; build-attestation provenance uses official GitHub docs;
+// other technical claims use AWS service documentation.
 export const ADVANCED_REFERENCES = Object.freeze({
   "sapx-01": "https://docs.aws.amazon.com/controltower/latest/controlreference/ou-region-deny.html",
   "sapx-02": "https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html",
@@ -29,7 +30,7 @@ export const ADVANCED_REFERENCES = Object.freeze({
   "dopx-09": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
   "dopx-10": "https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html",
   "dopx-11": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
-  "dopx-12": "https://docs.aws.amazon.com/lambda/latest/dg/governance-code-signing.html",
+  "dopx-12": "https://docs.github.com/en/actions/concepts/security/artifact-attestations",
   "secx-01": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html",
   "secx-02": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html",
   "secx-03": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html",

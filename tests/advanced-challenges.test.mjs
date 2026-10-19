@@ -47,9 +47,18 @@ describe("engineering challenge pilots", () => {
       assert.notEqual(q.reference, TRACKS[q.track].guide, q.id);
       const url = new URL(q.reference);
       assert.equal(url.protocol, "https:", q.id);
-      assert.ok(["docs.aws.amazon.com", "developer.hashicorp.com"].includes(url.hostname), q.id);
+      const allowed = q.id === "dopx-12"
+        ? ["docs.github.com"] // signed build provenance, repo and commit identity
+        : ["docs.aws.amazon.com", "developer.hashicorp.com"];
+      assert.ok(allowed.includes(url.hostname), q.id);
       assert.ok(url.pathname.split("/").length >= 4, q.id);
     }
+  });
+  it("documents source revision and signed artifact provenance", () => {
+    assert.equal(
+      ADVANCED_REFERENCES["dopx-12"],
+      "https://docs.github.com/en/actions/concepts/security/artifact-attestations"
+    );
   });
   it("cites the actual remediation for duplicate events and trigger containment", () => {
     assert.equal(
