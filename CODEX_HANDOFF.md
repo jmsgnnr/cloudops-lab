@@ -1,12 +1,12 @@
 # Codex handoff / CloudLabs (CloudOps Lab)
 
-**Updated:** 2026-10-18. **Status:** [CloudLabs Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has five completed Codex reviews. The fifth, at `568cec5`, found one P2 artifact provenance reference mismatch. A revised candidate now links to GitHub's official signed artifact-attestation documentation. The live PR review timeline, not this static file, is authoritative for future status. No merge or deployment; this is repository context, not synchronized chat memory.
+**Updated:** 2026-10-19. **Status:** [CloudLabs Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has seven confirmed independent Codex reviews through `006be3242807dfff82744ca4382e620656bf143b`. The seventh review reported three P2 findings: outdated handoff, `dopx-03` OIDC citation coverage, and `secx-01` S3 data-event selector ambiguity. The next correction is being prepared locally; a new exact-head Codex receipt is required after its push. The live PR timeline is authoritative. No merge or deployment.
 
 ## This is the correct local project
 
 - GitHub repository: `jmsgnnr/cloudops-lab` (public published baseline).
-- Local worktree: the isolated `cloudops-premium-01/workspace` checkout on the owner-authorized development machine; open this repository root, not a different clone.
-- Current branch: `feature/engineering-challenges-pricing`. Fifth reviewed head was `568cec5`. Before relying on a review, compare its reviewed commit with the actual live PR head SHA. Review-only role and owner approval remain unchanged.
+- Local corrective worktree: `Development/agentic-runs/cloudops-codex-fix` on the authorized workstation. It starts from the published PR branch at `006be32` on a dedicated local repair branch; do not confuse it with the separate `aws-cert-lab` main checkout.
+- Draft PR head branch: `feature/engineering-challenges-pricing`; seventh reviewed head: `006be32`. Local repair branch: `fix/local-codex-sec02`. Before accepting the next review, compare the actual submitted Codex receipt's reviewed SHA to the live PR head. Review-only role and owner approval are unchanged.
 - Engineering governance source is a **separate private local repository**, `jmsgnnr/agentic-workspace`; refer to its `AGENTS.md` and security boundary only if that repository is in your authorized scope.
 
 ## Product decisions
@@ -19,9 +19,9 @@
 
 ## Verified engineering state and first Codex review
 
-- Full Node suite **40/40 passed** (2026-10-18), including distractor, provenance-reference and incident regression tests in `tests/`. Browser QA on prior runtime revision passed; this corrective change only updates one reference and its unit tests.
+- Full Node suite **43/43 passed** on the local eighth-review candidate (2026-10-19), including new `dopx-03` OIDC trust/least-privilege source coverage and `secx-01` write-only `PutObject` versus read-enabled `GetObject` regression tests. The prior seventh-reviewed commit `006be32` passed 41/41. Browser QA evidence from earlier work applies to prior runtime revisions; the updated supplemental-reference link label has not yet received an independent browser walkthrough. No deployment is authorized.
 - Desktop/mobile Playwright practice and incident walkthroughs rerun successfully on October 18, including JSON export, no off-origin requests, and 390px responsive layout. Additional browser regression verified disabled impossible session sizes and `beforeunload` protection of incomplete incident drafts. Harness scripts and screenshots are in a sibling local QA directory outside the public Git tree.
-- **Codex review history:** [CloudLabs PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has five completed review rounds. Issues found and corrected include distractor quality, session-count constraints, incomplete-form navigation, post-bookmark pool refresh, and AWS claim-specific references. Fifth round found that `dopx-12` must cite build attestation/source revision verification, not AWS Lambda ZIP code signing alone. Updated official GitHub provenance documentation and a dedicated regression test address it in the next candidate. Actual re-review of the new commit is still required; no Codex review constitutes owner approval.
+- **Codex review history:** [CloudLabs PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has seven submitted rounds through `006be32`. Fifth (`568cec5`) flagged artifact-attestation source provenance; sixth (`0aadae3`) flagged `secx-02` Inspector-versus-GuardDuty sourcing; seventh (`006be32`, 2026-10-19) flagged this handoff, `dopx-03` OIDC claim-specific sources, and `secx-01` CloudTrail data-event ambiguity. The current remediation is awaiting its own new-commit independent review. Earlier reviews and `@codex review` request comments do not count for a new head. None is owner approval.
 - Relevant documents: `docs/prototype-acceptance.md`, `docs/pilot-scenarios-learner.md`, `docs/membership-architecture.md`, `docs/codex-final-review-handoff.md`.
 - For publisher workflow / GitHub review prerequisites, read the separate workspace's `docs/cloudlabs-codex-first-review-staging.md` and `docs/codex-github-activation.md`.
 

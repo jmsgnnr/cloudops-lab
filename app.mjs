@@ -437,7 +437,7 @@ function showPracticeFeedback(q) {
     supplement.href = q.referenceSupplement;
     supplement.target = "_blank";
     supplement.rel = "noopener noreferrer";
-    supplement.textContent = "Inspector technical reference ↗";
+    supplement.textContent = "Additional technical reference ↗";
     supplement.className = "question-source-link";
     feedback.append(document.createTextNode("  "), supplement);
   }

@@ -21,7 +21,7 @@ export const ADVANCED_REFERENCES = Object.freeze({
   "sapx-12": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/create-transit-vif-for-gateway.html",
   "dopx-01": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-rollback-and-redeploy.html",
   "dopx-02": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerImage.html",
-  "dopx-03": "https://docs.aws.amazon.com/IAM/latest/UserGuide/sts_example_sts_AssumeRoleWithWebIdentity_section.html",
+  "dopx-03": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html",
   "dopx-04": "https://developer.hashicorp.com/terraform/language/state",
   "dopx-05": "https://developer.hashicorp.com/terraform/language/state/backends",
   "dopx-06": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-types.html",
@@ -46,6 +46,7 @@ export const ADVANCED_REFERENCES = Object.freeze({
 });
 
 export const ADVANCED_REFERENCE_SUPPLEMENTS = Object.freeze({
+  "dopx-03": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
   "secx-02": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html"
 });
 
@@ -142,9 +143,9 @@ export const devopsChallenges = [
 ];
 
 export const securityFieldChallenges = [
-  s("secx-01", "Detection and Triage", "CloudTrail shows a PutObject operation but investigators need evidence of which principal downloaded sensitive S3 objects last week. Standard management events are enabled. What gap matters?",
-    ["Object-level S3 data events must have been enabled for the relevant scope","Query a CloudTrail Lake event store configured only for management events and assume object-level GetObject calls are present","Enable S3 server access logging after the incident and treat the resulting logs as a retrospective record of last week's readers","Use Macie classification findings to attribute previous object downloads to IAM principals without API event history"], [0],
-    "S3 object API activity is a CloudTrail data event and requires appropriate prior event selectors or equivalent event data stores. Logging cannot be retroactively invented after an incident."),
+  s("secx-01", "Detection and Triage", "CloudTrail shows PutObject because a write-only S3 object data-event selector covers the bucket; standard management events are also enabled. Investigators need to identify principals who downloaded sensitive objects last week. What logging gap matters?",
+    ["Read-level S3 object data events, including GetObject, needed to be enabled for the relevant bucket or prefix before the incident","Query a CloudTrail Lake event store configured only for management events and assume object-level GetObject calls are present","Enable S3 server access logging after the incident and treat the resulting logs as a retrospective record of last week's readers","Use Macie classification findings to attribute previous object downloads to IAM principals without API event history"], [0],
+    "A write-only S3 object data-event selector can capture PutObject but not GetObject reads. Historical download attribution requires a read-enabled selector for the relevant bucket or prefix, or an equivalent event data store, already active when the operation occurred. Logging is not retroactive."),
   s("secx-02", "Detection and Triage", "An Inspector finding reports an unpatched package, while GuardDuty reports a suspicious credential access pattern. What distinguishes the signals?",
     ["Inspector identifies exposure/vulnerabilities; GuardDuty is primarily threat-detection telemetry","Treat an Inspector package-vulnerability finding as confirmed exploitation whenever public exploit code is available","Assume a GuardDuty anomalous API finding proves the instance has the package version reported in an unrelated Inspector scan","Use an Inspector risk score as a substitute for validating whether the behavior in the GuardDuty alert actually happened"], [0],
     "Inspector and GuardDuty answer different questions. A vulnerable package is not proof of exploitation, and a suspicious behavior finding requires context and additional validation."),

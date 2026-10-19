@@ -60,6 +60,30 @@ describe("engineering challenge pilots", () => {
       "https://docs.github.com/en/actions/concepts/security/artifact-attestations"
     );
   });
+  it("supports dopx-03 OIDC trust conditions and separate IAM permission scoping", () => {
+    assert.equal(
+      ADVANCED_REFERENCES["dopx-03"],
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html"
+    );
+    assert.equal(
+      ADVANCED_REFERENCE_SUPPLEMENTS["dopx-03"],
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+    );
+    const q = QUESTIONS.find(item => item.id === "dopx-03");
+    assert.ok(q);
+    assert.equal(q.reference, ADVANCED_REFERENCES["dopx-03"]);
+    assert.equal(q.referenceSupplement, ADVANCED_REFERENCE_SUPPLEMENTS["dopx-03"]);
+    assert.match(q.explanation, /audience|repository|branch/i);
+    assert.match(q.explanation, /least.privilege/i);
+  });
+  it("makes secx-01 S3 PutObject write-event evidence and missing GetObject reads unambiguous", () => {
+    const q = QUESTIONS.find(item => item.id === "secx-01");
+    assert.ok(q);
+    assert.match(q.stem, /write-only S3 object data-event selector/i);
+    assert.match(q.options[q.answers[0]], /read-level S3 object data events, including GetObject/i);
+    assert.match(q.explanation, /PutObject but not GetObject reads/i);
+    assert.equal(q.reference, "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html");
+  });
   it("cites GuardDuty threat detection for secx-02 and retains Inspector findings documentation", () => {
     assert.equal(
       ADVANCED_REFERENCES["secx-02"],
