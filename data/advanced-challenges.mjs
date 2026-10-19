@@ -2,12 +2,59 @@ import { item } from "./question-utils.mjs";
 
 // Independent original scenarios. SAP-C02 and DOP-C02 are study topics,
 // not official AWS exam questions or claims of exam equivalence.
+// Each original advanced scenario points to a claim-specific official technical
+// reference, rather than the broad exam guide. HashiCorp documents cover
+// Terraform-specific behaviors; other sources are AWS service documentation.
+export const ADVANCED_REFERENCES = Object.freeze({
+  "sapx-01": "https://docs.aws.amazon.com/controltower/latest/controlreference/ou-region-deny.html",
+  "sapx-02": "https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html",
+  "sapx-03": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html",
+  "sapx-04": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html",
+  "sapx-05": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-types.html",
+  "sapx-06": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorOriginGroups.html",
+  "sapx-07": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database-disaster-recovery.html",
+  "sapx-08": "https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html",
+  "sapx-09": "https://docs.aws.amazon.com/xray/latest/devguide/xray-console-servicemap.html",
+  "sapx-10": "https://docs.aws.amazon.com/prescriptive-guidance/latest/migration-asp-net-web-forms/ha-scaling.html",
+  "sapx-11": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html",
+  "sapx-12": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/create-transit-vif-for-gateway.html",
+  "dopx-01": "https://docs.aws.amazon.com/codedeploy/latest/userguide/deployments-rollback-and-redeploy.html",
+  "dopx-02": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerImage.html",
+  "dopx-03": "https://docs.aws.amazon.com/IAM/latest/UserGuide/sts_example_sts_AssumeRoleWithWebIdentity_section.html",
+  "dopx-04": "https://developer.hashicorp.com/terraform/language/state",
+  "dopx-05": "https://developer.hashicorp.com/terraform/language/state/backends",
+  "dopx-06": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-types.html",
+  "dopx-07": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.Failover.html",
+  "dopx-08": "https://docs.aws.amazon.com/xray/latest/devguide/xray-console-servicemap.html",
+  "dopx-09": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+  "dopx-10": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html",
+  "dopx-11": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
+  "dopx-12": "https://docs.aws.amazon.com/lambda/latest/dg/governance-code-signing.html",
+  "secx-01": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html",
+  "secx-02": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html",
+  "secx-03": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html",
+  "secx-04": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_revoke-sessions.html",
+  "secx-05": "https://docs.aws.amazon.com/solutions/latest/automated-forensics-orchestrator-for-amazon-ec2/forensic-memory-and-disk-acquisition-service.html",
+  "secx-06": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html",
+  "secx-07": "https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-modifying-external-accounts.html",
+  "secx-08": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_third-party.html",
+  "secx-09": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html",
+  "secx-10": "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html",
+  "secx-11": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html",
+  "secx-12": "https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-modifying-external-accounts.html"
+});
+
+function advancedItem(id, track, domain, stem, options, answers, explanation) {
+  const reference = ADVANCED_REFERENCES[id];
+  if (!reference) throw new Error("Missing advanced technical reference for " + id);
+  return { ...item(id, track, domain, "advanced", stem, options, answers, explanation), reference };
+}
 const a = (id, domain, stem, options, answers, explanation) =>
-  item(id, "architecture", domain, "advanced", stem, options, answers, explanation);
+  advancedItem(id, "architecture", domain, stem, options, answers, explanation);
 const d = (id, domain, stem, options, answers, explanation) =>
-  item(id, "devops", domain, "advanced", stem, options, answers, explanation);
+  advancedItem(id, "devops", domain, stem, options, answers, explanation);
 const s = (id, domain, stem, options, answers, explanation) =>
-  item(id, "fieldsecurity", domain, "advanced", stem, options, answers, explanation);
+  advancedItem(id, "fieldsecurity", domain, stem, options, answers, explanation);
 
 export const architectureChallenges = [
   a("sapx-01", "Organizational Complexity", "An organization must deny use of an unapproved AWS Region across member accounts, including administrators, while retaining approved central services. Which control is most appropriate?",

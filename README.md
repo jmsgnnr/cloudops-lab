@@ -19,11 +19,11 @@ Independent, browser-only AWS practice and cloud engineering scenario tool. Thes
 
 ## Field investigation pilots (local, free)
 
-Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. Select a case from the Field Lab panel to inspect evidence and complete a five-part engineering incident report (diagnosis, supporting evidence, safe action, verification and rollback/preservation). Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; a refresh discards unfinished work. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
+Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. Select a case from the Field Lab panel to inspect evidence and complete a five-part engineering incident report (diagnosis, supporting evidence, safe action, verification and rollback/preservation). Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; unfinished navigation now triggers the browser's native unsaved-changes warning where supported, but a reload can still discard unfinished work if that warning is suppressed or bypassed. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
 
 The learner scenario specification is `docs/pilot-scenarios-learner.md`. The facilitator grading key is **intentionally outside the repository**, not in the publicly served JavaScript. Review the scenarios with an AWS subject-matter expert and pilot learners before suggesting reliable outcomes. The UI and new static cases must not be mistaken for protected premium content.
 
-CloudLabs' owner-designated final technical reviewer is Codex, **pending independent activation**. `docs/codex-final-review-handoff.md` outlines the review-only scope. No Codex review has run, and passing local tests does not imply independent approval.
+Codex GitHub Code Review is **operational**. [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has undergone three independent review passes as of October 18, 2026, with findings routed back through engineering. A further review is required for the latest documentation/reference corrections; passing tests and Codex feedback do **not** substitute for owner PR approval or deployment authorization. See `docs/codex-final-review-handoff.md`.
 
 **Not affiliated with or endorsed by Amazon Web Services.** Original practice scenarios are based on published AWS technical concepts. Exam guides and domain weights guide study metadata, but the shortened previews do not match actual exam length, scoring or content distribution.
 
@@ -38,7 +38,7 @@ ES modules require an HTTP server (opening `index.html` directly from disk may b
 python -m http.server 3456
 ```
 
-Open `http://localhost:3456` in a browser. Select one of six tracks and configure domain, practice/timed exam, question count and entire/missed/bookmarked pool. Practice mode reveals explanations after Check. Timed exam mode shows results at the end. Questions with multiple correct choices say how many to select.
+Open `http://localhost:3456` in a browser. Select one of six tracks and configure domain, practice/timed exam, question count and entire/missed/bookmarked pool. Practice mode reveals explanations and a question-specific official technical reference after Check. Timed exam mode shows results at the end. Questions with multiple correct choices say how many to select.
 
 Results show domain breakdown and a review. Attempts, missed IDs and bookmarks stay in browser localStorage. Progress can be exported as local JSON. The app makes no external authenticated or payment API calls.
 

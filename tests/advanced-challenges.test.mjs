@@ -4,6 +4,7 @@ import { TRACKS } from "../data/blueprints.mjs";
 import { QUESTIONS } from "../data/questions.mjs";
 import { LESSONS } from "../data/lessons.mjs";
 import { selectQuestions, shuffleQuestionChoices, evaluate } from "../engine.mjs";
+import { ADVANCED_REFERENCES } from "../data/advanced-challenges.mjs";
 
 const newTracks = {
   architecture: { code: "SAP-C02", counts: [3, 4, 3, 2], multi: 3 },
@@ -34,6 +35,20 @@ describe("engineering challenge pilots", () => {
           !/console color theme|IAM password policy|disable all audit logs|turn off all security groups/i.test(option)
         ), q.id);
       }
+    }
+  });
+  it("links all 36 advanced claims to domain-specific primary documentation", () => {
+    assert.equal(Object.keys(ADVANCED_REFERENCES).length, 36);
+    const advanced = QUESTIONS.filter(q => Object.hasOwn(newTracks, q.track));
+    assert.equal(advanced.length, 36);
+    for (const q of advanced) {
+      assert.ok(Object.hasOwn(ADVANCED_REFERENCES, q.id), q.id);
+      assert.equal(q.reference, ADVANCED_REFERENCES[q.id], q.id);
+      assert.notEqual(q.reference, TRACKS[q.track].guide, q.id);
+      const url = new URL(q.reference);
+      assert.equal(url.protocol, "https:", q.id);
+      assert.ok(["docs.aws.amazon.com", "developer.hashicorp.com"].includes(url.hostname), q.id);
+      assert.ok(url.pathname.split("/").length >= 4, q.id);
     }
   });
   it("covers all named domains and all supporting lessons", () => {

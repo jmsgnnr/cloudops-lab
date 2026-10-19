@@ -423,6 +423,15 @@ function showPracticeFeedback(q) {
   feedback.hidden = false;
   feedback.classList.add(correct ? "is-correct" : "is-incorrect");
   feedback.innerHTML = `<strong>${correct ? "Correct." : "Not quite."}</strong> ${escapeHtml(q.explanation)}`;
+  if (q.reference && /^https:\/\//.test(q.reference)) {
+    const source = document.createElement("a");
+    source.href = q.reference;
+    source.target = "_blank";
+    source.rel = "noopener noreferrer";
+    source.textContent = "Official technical reference ↗";
+    source.className = "question-source-link";
+    feedback.append(document.createTextNode("  "), source);
+  }
 }
 
 function onCheck() {

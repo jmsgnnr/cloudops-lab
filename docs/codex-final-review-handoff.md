@@ -1,4 +1,4 @@
-# CloudLabs: Final Codex review handoff (pending activation)
+# CloudLabs: Final Codex review handoff (integration active, PR still draft)
 
 Repository: jmsgnnr/cloudops-lab
 Current isolated local branch: feature/engineering-challenges-pricing
@@ -26,6 +26,6 @@ Owner: @jmsgnnr (personal PR approval and separate deployment approval)
 
 Local CLI has been inspected; `codex review --help` confirms `--uncommitted`, `--base`, and `--commit`. Launch is **ON HOLD** under the owner's Windows account. Only invoke from a verified dedicated least-privilege reviewer identity inside a review-only isolated workspace after security probes. Do not inspect local auth files to check credentials.
 
-Alternative: Use Codex PR Code Review on an authorized GitHub draft PR once owner-enabled in Codex, using `@codex review`; don't assume installed or successful until the report appears. This may be performed off the owner Windows principal but still needs repository-access approval and a separate owner-approved draft-PR push.
+**Active path:** GitHub Codex PR Code Review is confirmed operational. Bot-authored [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has received three real independent Codex reviews; the next corrected commit requires another `@codex review`. This runs off the owner's Windows principal, and does not replace the mandatory human PR approval.
 
-Review is a gate, not a GitHub approval. **Initial Codex review completed** on [draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2): P1 distractor quality, P2 preview session size, P2 incomplete incident report navigation. The second Codex review of commit `3622f24` found one additional P2 stale count after progress/bookmark mutation; it was corrected and tested locally. A third review is required; owner approval and release remain separate.
+Review is a gate, not a GitHub approval. **Three independent Codex reviews completed** on [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2). First found three issues with distractors, preview sizes and unsaved drafts; second identified stale count limits after saved-progress mutations; third found missing claim-specific references and stale review-status text. Those third-round issues are corrected in the present local candidate, which **requires a fourth review** before owner approval. No merge, deployment, paid content, or payment activation.
