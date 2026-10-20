@@ -1,0 +1,31 @@
+# PROPOSAL ONLY: this file lives in docs/ci-templates, NOT .github/workflows.
+# Requires a separate owner-reviewed workflow activation change.
+name: CloudOps Node verification
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudops-checks-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-test:
+    name: Node test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out proposed commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run built-in Node tests without dependency installation
+        run: node --test --test-concurrency=1 tests/*.test.mjs

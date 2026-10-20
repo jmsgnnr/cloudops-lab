@@ -45,6 +45,10 @@ node --check app.mjs
 node --check engine.mjs
 ```
 
+## Engineering automation pilot (not active)
+
+The proposed issue-to-draft-PR workflow, its required service-account and spending gates, and an inert CI template are in [docs/autopilot-pilot.md](docs/autopilot-pilot.md). This is preparation only: no Cursor Cloud Agent or GitHub test workflow has been activated.
+
 ## Limitations
 
 - Fixed bank of 180 validated original questions (60 per track); selection shuffles across domains but does not simulate official exam item pools or pass rules.
