@@ -97,6 +97,123 @@ describe("progress storage", () => {
     assert.equal(mem.has(STORAGE_KEY), true);
   });
 
+  it("returns empty progress for malformed JSON without throwing", () => {
+    for (const raw of ["{not-json", "", "   ", "{\"attempts\":"]) {
+      const storage = { getItem: () => raw, setItem: () => {} };
+      assert.doesNotThrow(() => readProgress(storage));
+      assert.deepEqual(readProgress(storage), emptyProgress());
+    }
+  });
+
+  it("returns empty progress when the schema version is missing or wrong", () => {
+    const payloads = [
+      {},
+      { version: 0, missed: ["clf-01"], bookmarks: ["scs-01"], attempts: [{ track: "practitioner" }] },
+      { version: 2, missed: ["clf-01"] },
+      { version: "1", missed: ["clf-01"] },
+      { version: null },
+      null,
+      []
+    ];
+    for (const payload of payloads) {
+      const storage = { getItem: () => JSON.stringify(payload), setItem: () => {} };
+      assert.deepEqual(readProgress(storage), emptyProgress());
+    }
+  });
+
+  it("returns empty progress when getItem throws and false when setItem throws", () => {
+    const brokenRead = {
+      getItem: () => {
+        throw new Error("storage unavailable");
+      },
+      setItem: () => {}
+    };
+    assert.doesNotThrow(() => readProgress(brokenRead));
+    assert.deepEqual(readProgress(brokenRead), emptyProgress());
+
+    let calledKey = null;
+    const brokenWrite = {
+      getItem: () => null,
+      setItem: (key) => {
+        calledKey = key;
+        throw new Error("quota");
+      }
+    };
+    assert.doesNotThrow(() => storeProgress(brokenWrite, emptyProgress()));
+    assert.equal(storeProgress(brokenWrite, emptyProgress()), false);
+    assert.equal(calledKey, STORAGE_KEY);
+  });
+
+  it("filters non-string missed and bookmarked ids and keeps the last 30 attempts", () => {
+    const attempts = Array.from({ length: 34 }, (_, index) => ({
+      track: "practitioner",
+      mode: "practice",
+      correct: index,
+      total: 10,
+      percent: index,
+      finishedAt: `2026-01-${String(index + 1).padStart(2, "0")}`
+    }));
+    const storage = {
+      getItem: () => JSON.stringify({
+        version: 1,
+        attempts,
+        missed: ["clf-01", 2, null, { id: "clf-02" }, "clf-03"],
+        bookmarks: ["scs-01", false, "scs-02", ["nested"]]
+      }),
+      setItem: () => {}
+    };
+    const loaded = readProgress(storage);
+    assert.equal(loaded.version, 1);
+    assert.deepEqual(loaded.missed, ["clf-01", "clf-03"]);
+    assert.deepEqual(loaded.bookmarks, ["scs-01", "scs-02"]);
+    assert.equal(loaded.attempts.length, 30);
+    assert.deepEqual(loaded.attempts, attempts.slice(-30));
+  });
+
+  it("replaces non-array attempt, missed, and bookmark fields", () => {
+    const storage = {
+      getItem: () => JSON.stringify({
+        version: 1,
+        attempts: { length: 4 },
+        missed: "clf-01",
+        bookmarks: { 0: "scs-01" }
+      }),
+      setItem: () => {}
+    };
+    assert.deepEqual(readProgress(storage), emptyProgress());
+  });
+
+  it("keeps a valid stored progress record on the existing key and schema", () => {
+    const mem = new Map();
+    const storage = {
+      getItem: (key) => (mem.has(key) ? mem.get(key) : null),
+      setItem: (key, value) => mem.set(key, value)
+    };
+    const progress = {
+      version: 1,
+      attempts: [{
+        track: "security",
+        mode: "timed",
+        correct: 7,
+        total: 10,
+        percent: 70,
+        finishedAt: "2026-10-20T00:00:00.000Z",
+        byDomain: { Detection: { correct: 7, total: 10 } }
+      }],
+      missed: ["scs-04"],
+      bookmarks: ["clf-12", "ans-03"]
+    };
+    assert.equal(storeProgress(storage, progress), true);
+    assert.deepEqual([...mem.keys()], [STORAGE_KEY]);
+    assert.equal(STORAGE_KEY, "aws-cert-lab-progress-v1");
+    const stored = JSON.parse(mem.get(STORAGE_KEY));
+    assert.equal(stored.version, 1);
+    assert.deepEqual(stored.missed, progress.missed);
+    assert.deepEqual(stored.bookmarks, progress.bookmarks);
+    assert.equal(stored.attempts.length, 1);
+    assert.deepEqual(readProgress(storage), progress);
+  });
+
   it("updates missed list after an attempt", () => {
     const q = QUESTIONS[0];
     const wrongIndex = q.options.findIndex((_, i) => !q.answers.includes(i));
