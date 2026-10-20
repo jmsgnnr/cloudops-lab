@@ -60,6 +60,15 @@ describe("engineering challenge pilots", () => {
       "https://docs.github.com/en/actions/concepts/security/artifact-attestations"
     );
   });
+  it("supports overlapping CIDR bridging with claim-specific AWS NAT and load-balancer documentation", () => {
+    const q = QUESTIONS.find(item => item.id === "sapx-02");
+    assert.ok(q);
+    assert.equal(q.reference, "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html");
+    assert.equal(q.referenceSupplement, "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/private-nat-gateway.html");
+    assert.deepEqual(q.answers, [0, 1]);
+    assert.match(q.options[0], /application-layer proxy/i);
+    assert.match(q.options[1], /translation layer/i);
+  });
   it("supports dopx-03 OIDC trust conditions and separate IAM permission scoping", () => {
     assert.equal(
       ADVANCED_REFERENCES["dopx-03"],

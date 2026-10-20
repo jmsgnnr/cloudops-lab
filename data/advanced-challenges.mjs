@@ -8,7 +8,7 @@ import { item } from "./question-utils.mjs";
 // other technical claims use AWS service documentation.
 export const ADVANCED_REFERENCES = Object.freeze({
   "sapx-01": "https://docs.aws.amazon.com/controltower/latest/controlreference/ou-region-deny.html",
-  "sapx-02": "https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html",
+  "sapx-02": "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html",
   "sapx-03": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html",
   "sapx-04": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html",
   "sapx-05": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-types.html",
@@ -46,6 +46,7 @@ export const ADVANCED_REFERENCES = Object.freeze({
 });
 
 export const ADVANCED_REFERENCE_SUPPLEMENTS = Object.freeze({
+  "sapx-02": "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/private-nat-gateway.html",
   "dopx-03": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html",
   "secx-02": "https://docs.aws.amazon.com/inspector/latest/user/findings-types.html"
 });
