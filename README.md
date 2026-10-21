@@ -45,9 +45,9 @@ node --check app.mjs
 node --check engine.mjs
 ```
 
-## Engineering automation pilot (not active)
+## Engineering automation pilot (draft-PR delivery verified; CI inactive)
 
-The proposed issue-to-draft-PR workflow, its required service-account and spending gates, and an inert CI template are in [docs/autopilot-pilot.md](docs/autopilot-pilot.md). This is preparation only: no Cursor Cloud Agent or GitHub test workflow has been activated.
+The owner-comment-triggered Cursor Cloud Agent pilot delivered [draft PR #6](https://github.com/jmsgnnr/cloudops-lab/pull/6) for Issue #4 as `cursor[bot]`. The [pilot runbook](docs/autopilot-pilot.md) records that verified checkpoint and remaining repository-scope, pre-push, hosted CI and final Codex gates. The [CI template](docs/ci-templates/cloudops-node-tests.yml) is inert; GitHub Actions has not been enabled by this proposal. No merge or deployment is authorized.
 
 ## Limitations
 
