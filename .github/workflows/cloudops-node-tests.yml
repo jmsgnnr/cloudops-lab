@@ -1,0 +1,62 @@
+name: CloudOps Node verification
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudops-node-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  node-test:
+    name: Node test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Reject out-of-scope PRs
+        env:
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          set -euo pipefail
+          test "$REPOSITORY" = 'jmsgnnr/cloudops-lab'
+          test "$SOURCE_REPOSITORY" = "$REPOSITORY"
+
+      - name: Check out exact PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify head and changed-file whitespace
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "Expected PR head: $EXPECTED_HEAD"
+          echo "Checked out head: $actual"
+          test "$actual" = "$EXPECTED_HEAD"
+          git fetch --no-tags --depth=1 origin "$EXPECTED_BASE"
+          git cat-file -e "${EXPECTED_BASE}^{commit}"
+          git diff --check "$EXPECTED_BASE" "$EXPECTED_HEAD"
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Check application syntax
+        run: |
+          node --check app.mjs
+          node --check engine.mjs
+
+      - name: Run Node test suite
+        run: node --test --test-concurrency=1 tests/*.test.mjs
