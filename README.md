@@ -45,6 +45,10 @@ node --check app.mjs
 node --check engine.mjs
 ```
 
+## Engineering automation pilot (draft-PR delivery verified; CI inactive)
+
+The owner-comment-triggered Cursor Cloud Agent pilot delivered [draft PR #6](https://github.com/jmsgnnr/cloudops-lab/pull/6) for Issue #4 as `cursor[bot]`. The [pilot runbook](docs/autopilot-pilot.md) records that verified checkpoint and remaining repository-scope, pre-push, hosted CI and final Codex gates. The [CI template](docs/ci-templates/cloudops-node-tests.yml) is inert; GitHub Actions has not been enabled by this proposal. No merge or deployment is authorized.
+
 ## Limitations
 
 - Fixed bank of 180 validated original questions (60 per track); selection shuffles across domains but does not simulate official exam item pools or pass rules.
