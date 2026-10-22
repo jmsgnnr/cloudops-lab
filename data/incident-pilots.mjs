@@ -11,6 +11,7 @@ export const INCIDENTS = Object.freeze([
   {
     id: "iam-boundary-v1", number: "01", title: "Access denied. Policy says allowed.",
     domain: "IAM / AUTHORIZATION", duration: "15 MIN", version: "0.1",
+    summary: "A reporting role is denied access to a file in S3.",
     impact: "A read-only reporting job cannot retrieve a CSV from S3. It assumes role ReportReader in account 111122223333. The job calls S3 over TLS. No resource policy grants access directly to the assumed-role session, and no STS session policy was supplied.",
     artifacts: [
       { label: "A / Request result", body: "Principal: arn:aws:sts::111122223333:assumed-role/ReportReader/job-42\nAction: s3:GetObject\nResource: arn:aws:s3:::cloudlabs-example-reports/2026/summary.csv\nOutcome: AccessDenied" },
@@ -23,6 +24,7 @@ export const INCIDENTS = Object.freeze([
   {
     id: "private-nat-v1", number: "02", title: "The subnet that lost HTTPS.",
     domain: "NETWORK / ROUTING", duration: "15 MIN", version: "0.1",
+    summary: "A private subnet resolves DNS but outbound HTTPS times out.",
     impact: "Instances in application subnet 10.20.10.0/24 can resolve external hostnames but time out on outbound TCP 443. Intended egress uses a public NAT gateway and an attached internet gateway. The destination is a third-party HTTPS service.",
     artifacts: [
       { label: "A / App subnet routes", body: "10.20.0.0/16  -> local\n0.0.0.0/0     -> nat-0abc" },
@@ -34,6 +36,7 @@ export const INCIDENTS = Object.freeze([
   {
     id: "resolver-blindspot-v1", number: "03", title: "The DNS record that never existed.",
     domain: "SECURITY / TELEMETRY", duration: "15 MIN", version: "0.1",
+    summary: "An investigator needs historical DNS evidence that was not collected.",
     impact: "An EC2 instance using the Amazon-provided VPC DNS resolver may have issued tunneling queries from 12:00 to 12:20 UTC. At 14:00 an analyst requests every queried hostname and the issuing process.",
     artifacts: [
       { label: "A / Coverage timeline", body: "VPC Flow Logs: enabled throughout the day on the instance ENI\nRoute 53 Resolver query logging: enabled at 13:00 UTC\nHistorical host DNS/process telemetry: not collected\nHistorical packet capture: not collected\nCloudTrail management events: enabled\nDetection lead: exists, but no complete hostname-to-process history" },

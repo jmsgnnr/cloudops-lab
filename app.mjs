@@ -86,6 +86,13 @@ function updateHeaderCounts() {
     const key = btn.getAttribute("data-count");
     btn.textContent = `${validation.counts[key] ?? 0} QUESTIONS`;
   }
+  for (const card of trackGrid.querySelectorAll(".track-card")) {
+    if (card.querySelector(".track-start")) continue;
+    const action = document.createElement("span");
+    action.className = "track-start";
+    action.textContent = "START 10-QUESTION PRACTICE ↗";
+    card.append(action);
+  }
 }
 
 function updateStats() {
@@ -114,7 +121,7 @@ function setActiveTrack(trackId) {
   refreshCountOptions();
   renderGuide();
   updateStats();
-  sessionHint.textContent = `Ready for ${TRACKS[trackId].code}  |  configure a session and start.`;
+  sessionHint.textContent = `Custom session ready for ${TRACKS[trackId].code}. Start when configured.`;
 }
 
 function renderDomainOptions() {
@@ -190,6 +197,17 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
+function setWorkspacePanel(panel) {
+  const practice = panel === "practice";
+  $("practice-home").hidden = !practice;
+  $("lab-home").hidden = practice;
+  for (const [button, active] of [["tab-practice", practice], ["tab-labs", !practice]]) {
+    const tab = $(button);
+    tab.classList.toggle("is-current", active);
+    tab.setAttribute("aria-pressed", String(active));
+  }
+}
+
 function showView(name) {
   dashboard.hidden = name !== "dashboard";
   quizView.hidden = name !== "quiz";
@@ -246,10 +264,15 @@ function formatTime(ms) {
 
 function startSession(event) {
   event.preventDefault();
-  const domain = domainSelect.value;
-  const mode = modeSelect.value;
-  const count = countSelect.value;
-  const focus = focusSelect.value;
+  return startSessionWithOptions({
+    domain: domainSelect.value,
+    mode: modeSelect.value,
+    count: countSelect.value,
+    focus: focusSelect.value
+  });
+}
+
+function startSessionWithOptions({ domain, mode, count, focus }) {
   const missed = progress.missed;
   const bookmarks = progress.bookmarks;
 
@@ -373,7 +396,7 @@ function renderQuestion() {
     showPracticeFeedback(q);
   }
 
-  prevBtn.textContent = session.index === 0 ? "← BACK TO SETUP" : "← PREVIOUS QUESTION";
+  prevBtn.textContent = session.index === 0 ? "← BACK TO TRACKS" : "← PREVIOUS QUESTION";
   updateNavButtons(q);
   updateBookmarkButton(q);
 }
@@ -631,8 +654,28 @@ function init() {
 
   trackGrid.addEventListener("click", (e) => {
     const card = e.target.closest(".track-card");
-    if (card?.dataset.track) setActiveTrack(card.dataset.track);
+    if (!card?.dataset.track) return;
+    setActiveTrack(card.dataset.track);
+    // A track selection starts practice immediately; advanced setup is optional.
+    startSessionWithOptions({ domain: "all", mode: "practice", count: 10, focus: "all" });
   });
+  $("tab-practice").addEventListener("click", () => setWorkspacePanel("practice"));
+  $("tab-labs").addEventListener("click", () => setWorkspacePanel("labs"));
+  const customButton = $("customize-session");
+  const customPanel = $("session-details");
+  const toggleSessionSettings = (open) => {
+    customPanel.hidden = !open;
+    customButton.setAttribute("aria-expanded", String(open));
+    customButton.textContent = open ? "CLOSE SETTINGS ↑" : "CUSTOMIZE SESSION ↓";
+    if (open) {
+      customPanel.scrollIntoView({ behavior: "auto", block: "nearest" });
+      domainSelect.focus({ preventScroll: true });
+    } else {
+      customButton.focus({ preventScroll: true });
+    }
+  };
+  customButton.addEventListener("click", () => toggleSessionSettings(customPanel.hidden));
+  $("close-settings").addEventListener("click", () => toggleSessionSettings(false));
 
   const refreshSessionAvailability = () => {
     const count = refreshCountOptions();
@@ -654,6 +697,7 @@ function init() {
   document.addEventListener("keydown", onKeyDown);
 
   setActiveTrack(currentTrack);
+  setWorkspacePanel("practice");
   setupIncidentUI(showView);
 }
 
