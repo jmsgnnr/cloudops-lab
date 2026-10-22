@@ -1133,3 +1133,118 @@ h3 {
 [hidden] {
   display: none !important;
 }
+
+/* Advanced challenge rail and local-only membership concept. */
+.track-card-advanced {
+  border-left-color: var(--acid-dim);
+  background: linear-gradient(170deg, rgba(223, 255, 63, 0.035), var(--ink-panel) 62%);
+}
+.track-card-advanced[data-track="devops"] { border-left-color: var(--pink); }
+.track-card-advanced[data-track="fieldsecurity"] { border-left-color: var(--paper); }
+.track-card-advanced.is-active {
+  border-color: rgba(223, 255, 63, 0.52);
+  background: linear-gradient(135deg, rgba(223, 255, 63, 0.1), var(--ink-panel) 70%);
+}
+.track-card-advanced[data-track="devops"].is-active {
+  border-color: rgba(255, 74, 169, 0.52);
+  background: linear-gradient(135deg, rgba(255, 74, 169, 0.08), var(--ink-panel) 70%);
+}
+.challenge-flag {
+  display: block;
+  margin-top: 0.75rem;
+  font: 0.64rem var(--mono);
+  letter-spacing: 0.07em;
+  color: var(--acid);
+}
+.track-card-advanced[data-track="devops"] .challenge-flag { color: var(--pink); }
+.track-card-advanced[data-track="fieldsecurity"] .challenge-flag { color: var(--paper); }
+.membership-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  gap: 1.5rem;
+  border: 1px solid var(--border-strong);
+  border-left: 4px solid var(--pink);
+  padding: 1.25rem 1.5rem;
+  margin: 0 0 1.8rem;
+  background: var(--ink-deep);
+}
+.membership-preview h2 { margin: 0.4rem 0; font-size: clamp(1.45rem, 3vw, 2.2rem); }
+.membership-preview p { color: var(--muted); margin: 0.5rem 0 0; max-width: 56ch; }
+.membership-prices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border-strong);
+  border: 1px solid var(--border-strong);
+  align-self: center;
+}
+.membership-prices > div { display: flex; flex-direction: column; gap: 0.35rem; padding: 0.9rem; background: var(--ink-raised); }
+.membership-prices span { font: 0.62rem var(--mono); color: var(--muted); letter-spacing: 0.08em; }
+.membership-prices strong { font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.2; color: var(--acid); }
+.membership-prices small { font: 0.63rem var(--mono); color: var(--paper); }
+.membership-prices em { font: 0.63rem var(--mono); font-style: normal; color: var(--pink); }
+@media (max-width: 760px) {
+  .membership-preview { grid-template-columns: 1fr; gap: 1rem; padding: 1rem; }
+}
+
+@media (min-width: 920px) {
+  .track-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Field investigations / synthetic, text-first training console */
+.incident-launch { margin: 2.25rem 0 2.5rem; }
+.incident-intro, .incident-small { color: var(--muted); max-width: 72ch; }
+.incident-intro { margin: 0 0 1.2rem; }
+.incident-small { font-size: 0.82rem; margin: 0.2rem 0 1rem; }
+.incident-catalog { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.8rem; }
+.incident-ticket {
+  display: flex; flex-direction: column; text-align: left; gap: 0.75rem; min-width: 0;
+  border: 1px solid var(--border-strong); border-top: 3px solid var(--acid);
+  background: var(--ink-panel); color: var(--paper); padding: 1.1rem;
+  cursor: pointer; font: inherit;
+}
+.incident-ticket:nth-child(2) { border-top-color: var(--pink); }
+.incident-ticket:nth-child(3) { border-top-color: var(--paper); }
+.incident-ticket-index, .incident-ticket-footer {
+  font: 0.66rem var(--mono); letter-spacing: 0.04em; color: var(--acid);
+}
+.incident-ticket strong { font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.18; }
+.incident-ticket-description { color: var(--muted); font-size: 0.83rem; line-height: 1.55; flex: 1; }
+.incident-ticket-footer { padding-top: 0.75rem; border-top: 1px dashed var(--border-strong); }
+.incident-ticket:hover { background: var(--ink-raised); border-color: var(--acid); }
+.incident-ticket:focus-visible, .incident-field textarea:focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 3px;
+}
+.incident-view { padding: 1.25rem 0 3rem; }
+.incident-view-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font: 0.67rem var(--mono); color: var(--muted); margin-bottom: 2rem; }
+.incident-view-head { border-bottom: 1px solid var(--border-strong); padding-bottom: 1.3rem; margin-bottom: 1.5rem; }
+.incident-view-head h2 { font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.12; letter-spacing: -0.03em; margin: 0.65rem 0; }
+.incident-view-head > p { max-width: 76ch; color: var(--muted); }
+.incident-view-head .incident-objective { color: var(--paper); border-left: 3px solid var(--acid); padding-left: 0.9rem; }
+.incident-workspace { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.incident-workspace h3 { font-size: 1.35rem; margin: 0.25rem 0; }
+.incident-evidence { display: grid; gap: 0.85rem; }
+.incident-artifact { min-width: 0; background: var(--ink-deep); border: 1px solid var(--border-strong); }
+.incident-artifact h4 { font: 0.68rem var(--mono); letter-spacing: 0.07em; color: var(--acid); background: var(--ink-raised); margin: 0; padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border); }
+.incident-artifact pre { margin: 0; padding: 0.85rem; color: var(--paper); font: 0.79rem/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.incident-response { min-width: 0; border: 1px solid var(--border-strong); background: var(--ink-panel); padding: 1.2rem; }
+.incident-response h3 { margin-top: 0; }
+.incident-field { display: flex; flex-direction: column; gap: 0.35rem; margin: 1.1rem 0; }
+.incident-field-label { font: 0.75rem var(--mono); color: var(--acid); }
+.incident-field-hint { font-size: 0.79rem; color: var(--muted); }
+.incident-field textarea {
+  display: block; width: 100%; min-height: 6rem; resize: vertical;
+  border: 1px solid var(--border-strong); background: var(--ink-deep);
+  color: var(--paper); padding: 0.8rem; font: 0.88rem/1.5 var(--font); border-radius: 2px;
+}
+.incident-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 1.2rem; }
+.incident-response .config-note { margin: 0.8rem 0 0; min-height: 1.3rem; }
+@media (max-width: 860px) {
+  .incident-catalog { grid-template-columns: 1fr; }
+  .incident-workspace { grid-template-columns: 1fr; }
+  .incident-view-top { align-items: flex-start; }
+  .incident-response { padding: 1rem; }
+}
+
+/* Long-form incident reports should not have a sticky bar covering evidence. */
+.incident-active .topbar { position: static; }

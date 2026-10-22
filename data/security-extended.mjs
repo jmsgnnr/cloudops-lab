@@ -1,7 +1,8 @@
 import { item } from "./question-utils.mjs";
 const t = "security";
-const q = (id, domain, difficulty, stem, options, answers, explanation) =>
-  item(id, t, domain, difficulty, stem, options, answers, explanation);
+const q = (id, domain, difficulty, stem, options, answers, explanation, reference) =>
+  ({ ...item(id, t, domain, difficulty, stem, options, answers, explanation),
+    ...(reference ? { reference } : {}) });
 
 export const securityExtendedQuestions = [
   q("scs-21", "Detection", "advanced",
@@ -29,9 +30,10 @@ export const securityExtendedQuestions = [
     ["EventBridge rules on Security Hub findings", "Security Hub custom insights emailed daily", "AWS Config remediation action without EventBridge", "Lambda polling DescribeFindings on a fixed schedule"], [0],
     "Security Hub publishes findings to EventBridge for real-time automation. Daily email insights and scheduled polling add delay; Config remediation targets config rules, not all Security Hub control failures."),
   q("scs-27", "Detection", "advanced",
-    "Investigators suspect data exfiltration via DNS tunneling from EC2. Which log sources should they correlate first? Select TWO.",
-    ["VPC Flow Logs", "Route 53 Resolver query logs where enabled", "AWS CloudTrail data events for S3 only", "Amazon GuardDuty S3 Protection findings without DNS logs"], [0, 1],
-    "Flow logs show unusual DNS port volumes; Resolver query logs reveal suspicious query patterns. S3 data events and S3 Protection alone miss DNS tunneling on EC2 resolver paths."),
+    "An EC2 instance uses the Amazon-provided VPC DNS resolver. Investigators suspect DNS tunneling and need evidence of queried domains and the originating host process. Which previously enabled telemetry sources should they prioritize? Select TWO.",
+    ["VPC Flow Logs for every query sent to the Amazon DNS server", "Route 53 Resolver query logs for the VPC", "EC2 host-level DNS client or process telemetry", "CloudTrail management events for every DNS query"], [1, 2],
+    "Route 53 Resolver query logs provide queried names and source details for logged resolver queries, while pre-existing host telemetry can help attribute a lookup to a process. Resolver caching means not every repeat query is logged. VPC Flow Logs exclude traffic to the Amazon-provided DNS server, and CloudTrail management events do not inventory individual resolver queries.",
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-query-logs.html"),
   q("scs-28", "Incident Response", "advanced",
     "A compromised EC2 instance is still running malware that phones home. What is the best immediate containment step before deep forensics?",
     ["Isolate the instance with a restrictive security group or quarantine VPC segment while preserving volumes", "Terminate the instance immediately to stop malware", "Reimage the instance from the latest golden AMI first", "Fail over traffic to standby before any isolation"], [0],
