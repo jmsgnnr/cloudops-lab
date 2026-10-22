@@ -59,7 +59,7 @@ describe("question bank validation", () => {
   it("has no structural issues", () => {
     const { issues, total } = validateBank(QUESTIONS);
     assert.equal(issues.length, 0, issues.join("\n"));
-    assert.equal(total, 180);
+    assert.equal(total, 216);
   });
 
   it("has sixty questions per track", () => {
