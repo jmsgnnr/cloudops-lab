@@ -1,3 +1,5 @@
+import { ADVANCED_LESSONS } from "./advanced-lessons.mjs";
+
 export const LESSONS = {
   practitioner: {
     "Cloud Concepts": {
@@ -74,5 +76,6 @@ export const LESSONS = {
       concepts: ["Stateful security groups vs stateless NACLs", "AWS Network Firewall and AWS Firewall Manager", "Private networking, access analysis and segmented routing"],
       example: "A shared inspection VPC needs intentional route steering both to and from an inspection point."
     }
-  }
+  },
+  ...ADVANCED_LESSONS
 };

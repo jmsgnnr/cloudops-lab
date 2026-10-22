@@ -1,6 +1,7 @@
 import { TRACKS } from "./data/blueprints.mjs";
 import { LESSONS } from "./data/lessons.mjs";
 import { QUESTIONS } from "./data/questions.mjs";
+import { setupIncidentUI } from "./incident-ui.mjs";
 import {
   selectQuestions,
   scoreQuiz,
@@ -54,8 +55,8 @@ const domainResults = $("domain-results");
 const reviewList = $("review-list");
 const againBtn = $("again-btn");
 
-let storage = localStorage;
-let progress = readProgress(storage);
+let storage = null;
+let progress = emptyProgress();
 let currentTrack = "practitioner";
 
 /** @type {{ questions: import('./data/questions.mjs').QUESTIONS[number][], answers: Record<string, number[]>, index: number, mode: 'practice'|'exam', checked: Set<string>, deadline: number|null, timerId: number|null, lastResult: ReturnType<typeof scoreQuiz>|null }} */
@@ -110,6 +111,7 @@ function setActiveTrack(trackId) {
     card.setAttribute("aria-pressed", active ? "true" : "false");
   }
   renderDomainOptions();
+  refreshCountOptions();
   renderGuide();
   updateStats();
   sessionHint.textContent = `Ready for ${TRACKS[trackId].code}  |  configure a session and start.`;
@@ -126,10 +128,31 @@ function renderDomainOptions() {
   }
 }
 
+function refreshCountOptions() {
+  const focus = focusSelect.value;
+  const domain = domainSelect.value;
+  const saved = focus === "missed" ? new Set(progress.missed) :
+    focus === "bookmarks" ? new Set(progress.bookmarks) : null;
+  const available = QUESTIONS.filter((q) =>
+    q.track === currentTrack &&
+    (domain === "all" || q.domain === domain) &&
+    (!saved || saved.has(q.id))
+  ).length;
+  for (const option of countSelect.options) {
+    if (option.value === "all") continue;
+    option.disabled = Number(option.value) > available;
+  }
+  if (countSelect.selectedOptions[0]?.disabled) {
+    countSelect.value = "all";
+  }
+  return available;
+}
+
 function renderGuide() {
   const track = TRACKS[currentTrack];
   guideIntro.textContent = track.description;
   officialGuide.href = track.guide;
+  officialGuide.textContent = track.independent ? "OFFICIAL AWS TECHNICAL REFERENCE ↗" : "OFFICIAL EXAM GUIDE ↗";
   retirementNote.hidden = currentTrack !== "networking";
   domainGrid.innerHTML = "";
   const lessons = LESSONS[currentTrack] ?? {};
@@ -171,9 +194,14 @@ function showView(name) {
   dashboard.hidden = name !== "dashboard";
   quizView.hidden = name !== "quiz";
   resultsView.hidden = name !== "results";
+  $("incident-view").hidden = name !== "incident";
+  document.body.classList.toggle("incident-active", name === "incident");
   const hero = document.querySelector(".hero");
   if (hero) hero.hidden = name !== "dashboard";
-  if (name === "dashboard") stopTimer();
+  if (name === "dashboard") {
+    stopTimer();
+    refreshCountOptions();
+  }
 
   // View navigation is immediate even when page anchors use smooth scroll.
   const root = document.documentElement;
@@ -183,6 +211,7 @@ function showView(name) {
   root.style.scrollBehavior = previous;
   if (name === "quiz") quizTitle.focus({ preventScroll: true });
   if (name === "results") $("results-title").focus({ preventScroll: true });
+  if (name === "incident") $("incident-title").focus({ preventScroll: true });
 }
 
 function stopTimer() {
@@ -344,7 +373,7 @@ function renderQuestion() {
     showPracticeFeedback(q);
   }
 
-  prevBtn.disabled = session.index === 0;
+  prevBtn.textContent = session.index === 0 ? "← BACK TO SETUP" : "← PREVIOUS QUESTION";
   updateNavButtons(q);
   updateBookmarkButton(q);
 }
@@ -394,6 +423,24 @@ function showPracticeFeedback(q) {
   feedback.hidden = false;
   feedback.classList.add(correct ? "is-correct" : "is-incorrect");
   feedback.innerHTML = `<strong>${correct ? "Correct." : "Not quite."}</strong> ${escapeHtml(q.explanation)}`;
+  if (q.reference && /^https:\/\//.test(q.reference)) {
+    const source = document.createElement("a");
+    source.href = q.reference;
+    source.target = "_blank";
+    source.rel = "noopener noreferrer";
+    source.textContent = "Official technical reference ↗";
+    source.className = "question-source-link";
+    feedback.append(document.createTextNode("  "), source);
+  }
+  if (q.referenceSupplement && /^https:\/\//.test(q.referenceSupplement)) {
+    const supplement = document.createElement("a");
+    supplement.href = q.referenceSupplement;
+    supplement.target = "_blank";
+    supplement.rel = "noopener noreferrer";
+    supplement.textContent = "Additional technical reference ↗";
+    supplement.className = "question-source-link";
+    feedback.append(document.createTextNode("  "), supplement);
+  }
 }
 
 function onCheck() {
@@ -415,7 +462,11 @@ function onNext() {
 }
 
 function onPrev() {
-  if (!session || session.index === 0) return;
+  if (!session) return;
+  if (session.index === 0) {
+    onQuit();
+    return;
+  }
   session.index -= 1;
   renderQuestion();
 }
@@ -518,6 +569,7 @@ function resetProgress() {
   progress = emptyProgress();
   storeProgress(storage, progress);
   updateStats();
+  refreshCountOptions();
   sessionHint.textContent = "Local progress cleared.";
 }
 
@@ -545,6 +597,7 @@ function onKeyDown(event) {
 
 function initStorageFallback() {
   try {
+    storage = window.localStorage;
     const probe = "__storage_probe__";
     storage.setItem(probe, "1");
     storage.removeItem(probe);
@@ -576,6 +629,14 @@ function init() {
     if (card?.dataset.track) setActiveTrack(card.dataset.track);
   });
 
+  const refreshSessionAvailability = () => {
+    const count = refreshCountOptions();
+    sessionHint.textContent = count ?
+      `${count} matching question${count === 1 ? "" : "s"} available for this session.` :
+      formatPoolHint(focusSelect.value, currentTrack, domainSelect.value);
+  };
+  domainSelect.addEventListener("change", refreshSessionAvailability);
+  focusSelect.addEventListener("change", refreshSessionAvailability);
   sessionForm.addEventListener("submit", startSession);
   checkBtn.addEventListener("click", onCheck);
   nextBtn.addEventListener("click", onNext);
@@ -588,6 +649,7 @@ function init() {
   document.addEventListener("keydown", onKeyDown);
 
   setActiveTrack(currentTrack);
+  setupIncidentUI(showView);
 }
 
 init();
