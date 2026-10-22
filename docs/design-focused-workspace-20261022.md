@@ -22,8 +22,8 @@ Preserve the project's independent, late-1990s operations-terminal identity, key
 - No real AWS calls, private answer keys, purchase flow, or automatic incident grading.
 
 ## QA and release boundaries
-Local source branch: `feature/cloudops-instant-practice-interactive-labs-20261022`, based on CloudOps PR #9 head `87d1a1a`. The PR #9 branch is not modified.
+Local source branch: `feature/cloudops-instant-practice-interactive-labs-20261022`, initially developed from CloudOps PR #9 head `87d1a1a` and subsequently rebased onto latest `main` (including merged PR #6 tests). The PR #9 branch is not modified or represented as merged.
 
 Validated through a Chrome Playwright walkthrough at 1440px, 390px, and 320px, including all six track entries, custom timed mode, both workspace tabs, disclosure drawers, three investigative cases, nine simulated checks, five-step report navigation, browser export, and overflow/network/error checks. Screenshot evidence and the standalone test harness reside outside the Git tree in `C:/Users/james/Development/agentic-runs/cloudops-focused-design-qa-20261022` and `cloudops-focused-qa-20261022.mjs`.
 
-This is an isolated, local-only candidate: **not pushed, approved, merged, or deployed**. Owner personal PR approval and separate deployment permission remain mandatory. Do not access the Gift repository.
+This is an isolated review candidate. Any eventual draft-PR publication does not grant approval to merge or deploy. Owner personal PR approval and separate deployment permission remain mandatory. Do not access the Gift repository.

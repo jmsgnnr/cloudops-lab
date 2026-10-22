@@ -1,31 +1,19 @@
-# CloudLabs: Final Codex review handoff (integration active, PR still draft)
+# CloudOps Lab: final independent review scope (October 22, 2026)
 
-Repository: jmsgnnr/cloudops-lab
-Published draft PR branch: feature/engineering-challenges-pricing (local repair worktree: fix/local-codex-sec02).
-Review lead: Codex (independent, review-only)
-Implementation/supervision: Cursor / ChatGPT under the canonical agentic-workspace policy.
-Owner: @jmsgnnr (personal PR approval and separate deployment approval)
+**This is a current-candidate handoff, not a live GitHub status report.** Always establish exact reviewed PR head, submitted review and hosted check status from GitHub. See root `CODEX_HANDOFF.md` for full provenance and restrictions.
 
-## Scope to review after implementation stops
+## Review target
+Repository `jmsgnnr/cloudops-lab`; branch `feature/cloudops-instant-practice-interactive-labs-20261022`. Built from PR #9's six-track/incident-lab candidate and then rebased on `main` after merged PR #6 progress-storage regression tests. **PR #9 is not represented as merged.** A separate draft PR should be the final review target after the feature stops changing.
 
-1. Existing 180 free practice questions and progress behavior preserved.
-2. Three 12-question advanced previews and $10/month, $100/year conceptual pricing; no billing.
-3. Three synthetic IAM, NAT routing and DNS telemetry incident investigations implemented as guided, accessible UI. Node coverage verified in the ninth-reviewed candidate; earlier browser evidence applies to the prior UI revision and does not establish a new production deployment.
-4. Corrected security item scs-27 DNS evidence behavior and accompanying regression.
-5. Secret isolation, premium-answer leakage, content validity, and user-data handling.
+## New code to scrutinize
+- `index.html`, `focused-workspace.css`, `styles.css`, `app.mjs`: original hero restored with focused Practice and Field Labs tabs; instant 10-question untimed track starts; custom exam/session controls preserved; disclosure panels should not block input or focus.
+- `incident-ui.mjs`, `data/incident-probes.mjs`, `data/incident-pilots.mjs`: three deterministic local-only diagnostic actions per synthetic scenario; one visible report field out of five; preserved answers, optional evidence attachments, guarded navigation/reset and existing ungraded JSON export.
+- `tests/incident-probes.test.mjs` and existing suites: original question IDs, bank validation, browser progress schema and grade-null contract remain intact.
 
-## Review contract
+## Verified engineering evidence
+October 22 after latest main rebase: **53/53 Node tests pass**. Node syntax and Git diff check pass. Local Chrome/Playwright walkthrough passed all six tracks, timed custom mode, Practice/Labs switching, disclosures, all three incident cases and nine diagnostics, five-step report navigation, export and 1440px/390px/320px responsiveness, with no JS errors, horizontal overflow or unexpected off-origin requests. QA scripts/screenshots remain local under `Development/agentic-runs/cloudops-focused-*`; do not pretend they are downloadable from GitHub.
 
-- Read AGENTS.md, docs/pilot-scenarios-learner.md, docs/prototype-acceptance.md, and docs/membership-architecture.md. Facilitator answer key remains outside the Git tree; no repo or public bundle should expose it.
-- Review completed code, not speculative features; compare changed files to the base and inspect relevant surrounding code, imports and tests.
-- Use high reasoning effort on correctness, auth boundary planning, security, and realistic AWS technical claims. No rewrite, fixes or task implementation by Codex.
-- Include reproducible line references for any BLOCKER/HIGH finding; distinguish evidence from hypotheses; enumerate untested behaviors.
-- Tests and browser evidence must be measured by independent supervisor. Positive code review is *not* a release approval.
+## Reviewer instructions and safety
+Read `AGENTS.md`, root `CODEX_HANDOFF.md`, `docs/design-focused-workspace-20261022.md`, `docs/pilot-scenarios-learner.md` and `docs/membership-architecture.md`. Verify real AWS technical correctness, XSS, keyboard and screen-reader affordances, disclosure focus, question modes/counts, draft loss, export and data minimization. Examine final diff *and* relevant surrounding code; distinguish confirmed vulnerabilities from guesses, with file/line/severity. The incident exercises remain explicitly synthetic and ungraded, and planned pricing is not active.
 
-## Command and cloud paths
-
-Local CLI has been inspected; `codex review --help` confirms `--uncommitted`, `--base`, and `--commit`. Launch is **ON HOLD** under the owner's Windows account. Only invoke from a verified dedicated least-privilege reviewer identity inside a review-only isolated workspace after security probes. Do not inspect local auth files to check credentials.
-
-**Active path (October 19, 2026):** GitHub Codex PR Code Review is operational. Bot-authored [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) has received **nine submitted independent reviews**, the ninth exactly on `518f899a05d931b591ad9fec7d67c9c8ebb87076` (submitted October 20, 01:03:45 UTC). Each new pushed commit requires a new exact-head review receipt; an `@codex review` request is not a receipt. Codex remains review-only and separate from owner approval.
-
-Review is a gate, not a GitHub approval. **Ninth independent review:** Codex reported one P2 on `docs/codex-final-review-handoff.md`, which still recorded only five rounds and the obsolete `dopx-12` candidate. Current candidate reconciles this document to the verified ninth review, the `sapx-02` AWS overlap-bridging source correction, and **44/44 Node tests passed** on `518f899`. The historical `dopx-12`, OIDC, GuardDuty and CloudTrail corrections remain in source. Before owner approval, require a fresh Codex receipt on the next pushed commit and reconcile any findings. No merge, deployment, paid content or payment activation is authorized without owner approval.
+Codex is read-only reviewer, not implementation engineer. A separate PR #9 exact-head Codex review was still marked **running** at this handoff; do not issue repetitive @codex requests or mistake earlier historical PR #2 reviews for final clearance. Do not invoke Codex local CLI under the owner's Windows identity. No GitHub owner approval, merge, deployment, entitlement activation, CI/Cursor automation change, secret exposure or spending is allowed. **OWNER REVIEW REQUIRED** before any final release decision.
