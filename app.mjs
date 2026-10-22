@@ -581,7 +581,12 @@ function onQuit() {
 }
 
 function onKeyDown(event) {
-  if (!session || quizView.hidden) return;
+  if (!session || quizView.hidden || event.defaultPrevented ||
+      event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  // Preserve native arrow-key interaction inside answer controls and links.
+  // Global navigation is only for unfocused/non-interactive page regions.
+  if (event.target instanceof Element &&
+      event.target.closest("input, textarea, select, button, a[href], [contenteditable='true'], [role='radio'], [role='checkbox'], [role='textbox']")) return;
   const q = currentQuestion();
   if (!q) return;
   if (event.key === "ArrowLeft" && !prevBtn.disabled) {
