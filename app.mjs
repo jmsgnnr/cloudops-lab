@@ -1,6 +1,7 @@
 import { TRACKS } from "./data/blueprints.mjs";
 import { LESSONS } from "./data/lessons.mjs";
 import { QUESTIONS } from "./data/questions.mjs";
+import { setupIncidentUI } from "./incident-ui.mjs";
 import {
   selectQuestions,
   scoreQuiz,
@@ -18,6 +19,7 @@ const dashboard = $("dashboard");
 const quizView = $("quiz-view");
 const resultsView = $("results-view");
 const trackGrid = $("track-grid");
+const customTrackSelect = $("custom-track-select");
 const domainSelect = $("domain-select");
 const modeSelect = $("mode-select");
 const countSelect = $("count-select");
@@ -54,8 +56,8 @@ const domainResults = $("domain-results");
 const reviewList = $("review-list");
 const againBtn = $("again-btn");
 
-let storage = localStorage;
-let progress = readProgress(storage);
+let storage = null;
+let progress = emptyProgress();
 let currentTrack = "practitioner";
 
 /** @type {{ questions: import('./data/questions.mjs').QUESTIONS[number][], answers: Record<string, number[]>, index: number, mode: 'practice'|'exam', checked: Set<string>, deadline: number|null, timerId: number|null, lastResult: ReturnType<typeof scoreQuiz>|null }} */
@@ -85,6 +87,13 @@ function updateHeaderCounts() {
     const key = btn.getAttribute("data-count");
     btn.textContent = `${validation.counts[key] ?? 0} QUESTIONS`;
   }
+  for (const card of trackGrid.querySelectorAll(".track-card")) {
+    if (card.querySelector(".track-start")) continue;
+    const action = document.createElement("span");
+    action.className = "track-start";
+    action.textContent = "START 10-QUESTION PRACTICE ↗";
+    card.append(action);
+  }
 }
 
 function updateStats() {
@@ -104,15 +113,17 @@ function updateStats() {
 function setActiveTrack(trackId) {
   if (!TRACKS[trackId]) return;
   currentTrack = trackId;
+  customTrackSelect.value = trackId;
   for (const card of trackGrid.querySelectorAll(".track-card")) {
     const active = card.dataset.track === trackId;
     card.classList.toggle("is-active", active);
     card.setAttribute("aria-pressed", active ? "true" : "false");
   }
   renderDomainOptions();
+  refreshCountOptions();
   renderGuide();
   updateStats();
-  sessionHint.textContent = `Ready for ${TRACKS[trackId].code}  |  configure a session and start.`;
+  sessionHint.textContent = `Custom session ready for ${TRACKS[trackId].code}. Start when configured.`;
 }
 
 function renderDomainOptions() {
@@ -126,10 +137,31 @@ function renderDomainOptions() {
   }
 }
 
+function refreshCountOptions() {
+  const focus = focusSelect.value;
+  const domain = domainSelect.value;
+  const saved = focus === "missed" ? new Set(progress.missed) :
+    focus === "bookmarks" ? new Set(progress.bookmarks) : null;
+  const available = QUESTIONS.filter((q) =>
+    q.track === currentTrack &&
+    (domain === "all" || q.domain === domain) &&
+    (!saved || saved.has(q.id))
+  ).length;
+  for (const option of countSelect.options) {
+    if (option.value === "all") continue;
+    option.disabled = Number(option.value) > available;
+  }
+  if (countSelect.selectedOptions[0]?.disabled) {
+    countSelect.value = "all";
+  }
+  return available;
+}
+
 function renderGuide() {
   const track = TRACKS[currentTrack];
   guideIntro.textContent = track.description;
   officialGuide.href = track.guide;
+  officialGuide.textContent = track.independent ? "OFFICIAL AWS TECHNICAL REFERENCE ↗" : "OFFICIAL EXAM GUIDE ↗";
   retirementNote.hidden = currentTrack !== "networking";
   domainGrid.innerHTML = "";
   const lessons = LESSONS[currentTrack] ?? {};
@@ -167,13 +199,29 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
+function setWorkspacePanel(panel) {
+  const practice = panel === "practice";
+  $("practice-home").hidden = !practice;
+  $("lab-home").hidden = practice;
+  for (const [button, active] of [["tab-practice", practice], ["tab-labs", !practice]]) {
+    const tab = $(button);
+    tab.classList.toggle("is-current", active);
+    tab.setAttribute("aria-pressed", String(active));
+  }
+}
+
 function showView(name) {
   dashboard.hidden = name !== "dashboard";
   quizView.hidden = name !== "quiz";
   resultsView.hidden = name !== "results";
+  $("incident-view").hidden = name !== "incident";
+  document.body.classList.toggle("incident-active", name === "incident");
   const hero = document.querySelector(".hero");
   if (hero) hero.hidden = name !== "dashboard";
-  if (name === "dashboard") stopTimer();
+  if (name === "dashboard") {
+    stopTimer();
+    refreshCountOptions();
+  }
 
   // View navigation is immediate even when page anchors use smooth scroll.
   const root = document.documentElement;
@@ -183,6 +231,7 @@ function showView(name) {
   root.style.scrollBehavior = previous;
   if (name === "quiz") quizTitle.focus({ preventScroll: true });
   if (name === "results") $("results-title").focus({ preventScroll: true });
+  if (name === "incident") $("incident-title").focus({ preventScroll: true });
 }
 
 function stopTimer() {
@@ -217,10 +266,15 @@ function formatTime(ms) {
 
 function startSession(event) {
   event.preventDefault();
-  const domain = domainSelect.value;
-  const mode = modeSelect.value;
-  const count = countSelect.value;
-  const focus = focusSelect.value;
+  return startSessionWithOptions({
+    domain: domainSelect.value,
+    mode: modeSelect.value,
+    count: countSelect.value,
+    focus: focusSelect.value
+  });
+}
+
+function startSessionWithOptions({ domain, mode, count, focus }) {
   const missed = progress.missed;
   const bookmarks = progress.bookmarks;
 
@@ -344,7 +398,7 @@ function renderQuestion() {
     showPracticeFeedback(q);
   }
 
-  prevBtn.disabled = session.index === 0;
+  prevBtn.textContent = session.index === 0 ? "← BACK TO TRACKS" : "← PREVIOUS QUESTION";
   updateNavButtons(q);
   updateBookmarkButton(q);
 }
@@ -394,6 +448,24 @@ function showPracticeFeedback(q) {
   feedback.hidden = false;
   feedback.classList.add(correct ? "is-correct" : "is-incorrect");
   feedback.innerHTML = `<strong>${correct ? "Correct." : "Not quite."}</strong> ${escapeHtml(q.explanation)}`;
+  if (q.reference && /^https:\/\//.test(q.reference)) {
+    const source = document.createElement("a");
+    source.href = q.reference;
+    source.target = "_blank";
+    source.rel = "noopener noreferrer";
+    source.textContent = "Official technical reference ↗";
+    source.className = "question-source-link";
+    feedback.append(document.createTextNode("  "), source);
+  }
+  if (q.referenceSupplement && /^https:\/\//.test(q.referenceSupplement)) {
+    const supplement = document.createElement("a");
+    supplement.href = q.referenceSupplement;
+    supplement.target = "_blank";
+    supplement.rel = "noopener noreferrer";
+    supplement.textContent = "Additional technical reference ↗";
+    supplement.className = "question-source-link";
+    feedback.append(document.createTextNode("  "), supplement);
+  }
 }
 
 function onCheck() {
@@ -415,7 +487,11 @@ function onNext() {
 }
 
 function onPrev() {
-  if (!session || session.index === 0) return;
+  if (!session) return;
+  if (session.index === 0) {
+    onQuit();
+    return;
+  }
   session.index -= 1;
   renderQuestion();
 }
@@ -518,6 +594,7 @@ function resetProgress() {
   progress = emptyProgress();
   storeProgress(storage, progress);
   updateStats();
+  refreshCountOptions();
   sessionHint.textContent = "Local progress cleared.";
 }
 
@@ -526,10 +603,19 @@ function onQuit() {
   stopTimer();
   session = null;
   showView("dashboard");
+  // The exit controls are now hidden. Move focus to a visible, selected track.
+  const selectedCard = [...trackGrid.querySelectorAll(".track-card")]
+    .find((card) => card.dataset.track === currentTrack);
+  (selectedCard ?? $("tab-practice")).focus({ preventScroll: true });
 }
 
 function onKeyDown(event) {
-  if (!session || quizView.hidden) return;
+  if (!session || quizView.hidden || event.defaultPrevented ||
+      event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  // Preserve native arrow-key interaction inside answer controls and links.
+  // Global navigation is only for unfocused/non-interactive page regions.
+  if (event.target instanceof Element &&
+      event.target.closest("input, textarea, select, button, a[href], [contenteditable='true'], [role='radio'], [role='checkbox'], [role='textbox']")) return;
   const q = currentQuestion();
   if (!q) return;
   if (event.key === "ArrowLeft" && !prevBtn.disabled) {
@@ -545,6 +631,7 @@ function onKeyDown(event) {
 
 function initStorageFallback() {
   try {
+    storage = window.localStorage;
     const probe = "__storage_probe__";
     storage.setItem(probe, "1");
     storage.removeItem(probe);
@@ -570,12 +657,47 @@ function init() {
     console.warn("Question bank validation:", validation.issues);
   }
   updateHeaderCounts();
+  for (const [trackId, track] of Object.entries(TRACKS)) {
+    const option = document.createElement("option");
+    option.value = trackId;
+    option.textContent = `${track.name} · ${track.code}`;
+    customTrackSelect.appendChild(option);
+  }
 
   trackGrid.addEventListener("click", (e) => {
     const card = e.target.closest(".track-card");
-    if (card?.dataset.track) setActiveTrack(card.dataset.track);
+    if (!card?.dataset.track) return;
+    setActiveTrack(card.dataset.track);
+    // A track selection starts practice immediately; advanced setup is optional.
+    startSessionWithOptions({ domain: "all", mode: "practice", count: 10, focus: "all" });
   });
+  $("tab-practice").addEventListener("click", () => setWorkspacePanel("practice"));
+  $("tab-labs").addEventListener("click", () => setWorkspacePanel("labs"));
+  const customButton = $("customize-session");
+  const customPanel = $("session-details");
+  const toggleSessionSettings = (open) => {
+    customPanel.hidden = !open;
+    customButton.setAttribute("aria-expanded", String(open));
+    customButton.textContent = open ? "CLOSE SETTINGS ↑" : "CUSTOMIZE SESSION ↓";
+    if (open) {
+      customPanel.scrollIntoView({ behavior: "auto", block: "nearest" });
+      customTrackSelect.focus({ preventScroll: true });
+    } else {
+      customButton.focus({ preventScroll: true });
+    }
+  };
+  customButton.addEventListener("click", () => toggleSessionSettings(customPanel.hidden));
+  $("close-settings").addEventListener("click", () => toggleSessionSettings(false));
+  customTrackSelect.addEventListener("change", () => setActiveTrack(customTrackSelect.value));
 
+  const refreshSessionAvailability = () => {
+    const count = refreshCountOptions();
+    sessionHint.textContent = count ?
+      `${count} matching question${count === 1 ? "" : "s"} available for this session.` :
+      formatPoolHint(focusSelect.value, currentTrack, domainSelect.value);
+  };
+  domainSelect.addEventListener("change", refreshSessionAvailability);
+  focusSelect.addEventListener("change", refreshSessionAvailability);
   sessionForm.addEventListener("submit", startSession);
   checkBtn.addEventListener("click", onCheck);
   nextBtn.addEventListener("click", onNext);
@@ -588,6 +710,8 @@ function init() {
   document.addEventListener("keydown", onKeyDown);
 
   setActiveTrack(currentTrack);
+  setWorkspacePanel("practice");
+  setupIncidentUI(showView);
 }
 
 init();

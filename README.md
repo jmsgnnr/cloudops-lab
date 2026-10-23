@@ -1,68 +1,82 @@
-# CloudOps Lab  |  AWS Certification Practice
+# CloudOps Lab | Cloud Engineering Practice
 
 Created by **[@jmsgnnr](https://github.com/jmsgnnr)**.
 
-Independent, browser-only study and quiz tool for three AWS certification tracks:
+Independent, browser-only AWS practice and cloud engineering scenario tool. These are **original questions**, not AWS exam items, official exam simulations or pass guarantees. The new professional-level tracks are **short 12-question diagnostic previews**, not full-length certification exams.
 
-| Track | Exam code | Questions |
-| --- | --- | --- |
-| Cloud Practitioner | CLF-C02 | 60 |
-| Security Specialty | SCS-C03 | 60 |
-| Advanced Networking Specialty | ANS-C01 | 60 |
+## Current practice catalog
 
-**Not affiliated with or endorsed by Amazon Web Services.** Questions are original practice scenarios inspired by public exam guides  |  not copies of real exam items and not a pass guarantee or score predictor.
+| Track | Reference code | Questions | Type |
+| --- | --- | ---: | --- |
+| Cloud Practitioner | CLF-C02 | 60 | AWS certification study |
+| Security Specialty | SCS-C03 | 60 | AWS certification study |
+| Advanced Networking Specialty | ANS-C01 | 60 | AWS certification study |
+| Solutions Architect Professional | SAP-C02 | 12 | Advanced original preview |
+| DevOps Engineer Professional | DOP-C02 | 12 | Advanced original preview |
+| Security Engineering Field Exam | FIELD-SEC | 12 | **Independent engineering assessment, not a certification** |
 
-**ANS-C01 retirement:** AWS lists Advanced Networking Specialty (ANS-C01) for retirement on **December 31, 2026**. Confirm any exam plans on [AWS Certification](https://aws.amazon.com/certification/).
+216 original questions total. The original 180 question IDs, domain allocation and progress format are preserved.
 
-## Usage
+## Field investigation pilots (local, free)
 
-ES modules require a local HTTP server (opening `index.html` directly from disk may block imports).
+Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. Select a case from the Field Lab panel to inspect evidence and complete a five-part engineering incident report (diagnosis, supporting evidence, safe action, verification and rollback/preservation). Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; unfinished navigation now triggers the browser's native unsaved-changes warning where supported, but a reload can still discard unfinished work if that warning is suppressed or bypassed. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
+
+The learner scenario specification is `docs/pilot-scenarios-learner.md`. The facilitator grading key is **intentionally outside the repository**, not in the publicly served JavaScript. Review the scenarios with an AWS subject-matter expert and pilot learners before suggesting reliable outcomes. The UI and new static cases must not be mistaken for protected premium content.
+
+Codex GitHub Code Review is **operational**. [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) contains the authoritative review history and current findings. Corrections are returned to engineering and retested. Passing tests or a completed Codex review never substitute for the owner's PR approval and separate deployment authorization. See `docs/codex-final-review-handoff.md`.
+
+**Not affiliated with or endorsed by Amazon Web Services.** Original practice scenarios are based on published AWS technical concepts. Exam guides and domain weights guide study metadata, but the shortened previews do not match actual exam length, scoring or content distribution.
+
+**ANS-C01 retirement:** AWS lists Advanced Networking Specialty (ANS-C01) for retirement on December 31, 2026. Confirm exam plans on [AWS Certification](https://aws.amazon.com/certification/).
+
+## Local usage
+
+ES modules require an HTTP server (opening `index.html` directly from disk may block imports):
 
 ```bash
-# From this folder
-npx --yes serve -l 3456 .
-# or
+# From this folder, using an already installed Python runtime:
 python -m http.server 3456
 ```
 
-Open `http://localhost:3456` in a modern browser.
+Open `http://localhost:3456` in a browser. Select one of six tracks and configure domain, practice/timed exam, question count and entire/missed/bookmarked pool. Practice mode reveals explanations and a question-specific official technical reference after Check. Timed exam mode shows results at the end. Questions with multiple correct choices say how many to select.
 
-1. Pick a certification track.
-2. Configure domain, practice vs timed exam mode, question count, and pool (all / missed / bookmarked).
-3. Answer questions (single- or multi-select as indicated). Practice mode reveals explanations after **Check**; exam mode hides answers until the debrief and runs a session timer based on each track’s `minutesPerQuestion`.
-4. Review results, export JSON progress, or reset local data with confirmation.
+Results show domain breakdown and a review. Attempts, missed IDs and bookmarks stay in browser localStorage. Progress can be exported as local JSON. The app makes no external authenticated or payment API calls.
 
-Progress (sessions, missed IDs, bookmarks) stays in **localStorage** only  |  no accounts, no network calls.
+## Planned membership, not active
 
-## Commands
+The local feature-branch UI displays **planned pricing** of **$10/month or $100/year** (save $20 versus monthly). **No checkout, subscription, account, billable service or premium access enforcement exists yet.** Advanced samples are currently visible locally and must not be treated as protected paid content in a public static build.
+
+Production paid content needs a separate private server-side question store and server-scored sessions, authentication, billing-provider webhook reconciliation, access controls and commercial hosting. Do not publish the private premium question bank in JavaScript bundles. See [membership architecture and release gates](docs/membership-architecture.md).
+
+## Test and quality workflow
 
 ```bash
-# Unit tests (Node built-in test runner, no install)
 node --test tests/*.test.mjs
-
-# Syntax check entry modules
 node --check app.mjs
 node --check engine.mjs
+node --check data/advanced-challenges.mjs
 ```
 
-## Limitations
+The challenge set has assertions for track counts, domain coverage, stable IDs, explanations, multi-select ratio and quiz-engine integration. Automated tests alone do not prove that each answer is technically accurate. Conduct independent technical review and desktop/mobile browser verification before releasing.
 
-- Fixed bank of 180 validated original questions (60 per track); selection shuffles across domains but does not simulate official exam item pools or pass rules.
-- Timed exam uses `question count × minutesPerQuestion` as a study timer, not official exam clock rules.
-- Empty missed/bookmark pools show an inline message instead of starting a session.
-- If storage is blocked, the app falls back to in-memory progress for the current tab and warns on export/save failures.
+## Provenance and limitations
 
-## Provenance
+- Existing certification domain metadata: AWS exam guides in the app (original three verified October 12, 2026; SAP-C02 and DOP-C02 topical references verified October 17, 2026).
+- New independent security track uses official AWS Well-Architected Security Pillar for general learning context.
+- Original 180 questions remain in `data/practitioner*.mjs`, `data/security*.mjs`, `data/networking*.mjs`.
+- New 36 scenarios: `data/advanced-challenges.mjs`; new study guides: `data/advanced-lessons.mjs`.
+- The selection algorithm balances questions across domains for study variety, not exact official exam weights.
+- The time budget is question-count times the track's study timer, not an official certification exam clock.
+- Storage failures fall back to the browser tab; local progress is not an authenticated cross-device service.
+- The small sample size makes these diagnostics, not reliable pass predictors.
+- No proprietary certification dumps, live Stripe traffic, credentials, new dependencies, remote APIs or new deployments are part of this branch.
 
-- Domain weights and track metadata: AWS certification exam guide pages linked from the in-app **Official exam guide** control (checked **October 12, 2026**).
-- Learning notes: `data/lessons.mjs` (original summaries).
-- Questions: `data/practitioner.mjs`, `data/security.mjs`, `data/networking.mjs` (legacy IDs 01–20 per track) plus `data/*-extended.mjs` (IDs 21–60 per track); merged in `data/questions.mjs`.
+## Source overview
 
-## Project layout
-
-- `index.html`  |  UI skeleton
-- `app.mjs`  |  DOM wiring
-- `styles.css`  |  layout and theme
-- `engine.mjs`  |  selection, scoring, storage helpers
-- `data/`  |  blueprints, lessons, question bank
-- `tests/`  |  Node unit tests
+- `index.html` - accessible UI skeleton and planned pricing
+- `app.mjs` - browser session and progress flow
+- `styles.css` - late-1990s operations-console theme
+- `engine.mjs` - selection, scoring and progress functions
+- `data/` - question banks, guides and metadata
+- `tests/` - dependency-free Node unit and bank tests
+- `docs/membership-architecture.md` - proposed commercial system, not live integration
