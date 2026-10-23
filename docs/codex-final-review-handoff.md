@@ -1,21 +1,27 @@
-# CloudOps Lab: final independent review scope (October 22, 2026)
+# Exact-head Codex review brief: guided missions v2
 
-**This is a current-candidate handoff, not a live GitHub status report.** Always establish exact reviewed PR head, submitted review and hosted check status from GitHub. See root `CODEX_HANDOFF.md` for full provenance and restrictions.
+**October 22, 2026.** Verify live PR head and CI after publication; these are local pre-push results, not a claim of GitHub clearance.
 
-## Review target
-Repository `jmsgnnr/cloudops-lab`; branch `feature/cloudops-instant-practice-interactive-labs-20261022`. Built from PR #9's six-track/incident-lab candidate and then rebased on `main` after merged PR #6 progress-storage regression tests. **PR #9 is not represented as merged.** A separate draft PR should be the final review target after the feature stops changing.
+## Base and intended diff
 
-## New code to scrutinize
-- `index.html`, `focused-workspace.css`, `styles.css`, `app.mjs`: original hero restored with focused Practice and Field Labs tabs; instant 10-question untimed track starts; custom exam/session controls preserved; disclosure panels should not block input or focus.
-- `incident-ui.mjs`, `data/incident-probes.mjs`, `data/incident-pilots.mjs`: three deterministic local-only diagnostic actions per synthetic scenario; one visible report field out of five; preserved answers, optional evidence attachments, guarded navigation/reset and existing ungraded JSON export.
-- `tests/incident-probes.test.mjs` and existing suites: original question IDs, bank validation, browser progress schema and grade-null contract remain intact.
-- **PR #10 Codex P2 remediation:** `index.html` provides `#custom-track-select` in advanced setup, `app.mjs` binds it to `setActiveTrack` independently of instant-start cards, refreshes available domains/counts, and restores focus to visible selected track on confirmed exit. `focused-workspace.css` keeps selector legible in both desktop and mobile layouts. Review cancellation behavior and last-track Tab/Shift+Tab path without inventing a separate focus trap.
-- `qa/codex-p2-browser-qa.mjs`: committed optional Playwright browser regression with no mandatory package dependency. It checks six-track selection, timed custom session, confirmed/cancelled exits, desktop/mobile focus restoration and no unexpected off-origin requests.
+Base: `main` merge `f1a4d99` (owner-approved CloudOps focused workspace PR #11). Branch `feature/cloudops-interactive-labs-access-plan-20261022` adds no dependencies, no new paid provider integrations, no secrets, no GitHub workflow changes.
 
-## Verified engineering evidence
-October 22 after latest main rebase: **53/53 Node tests pass**. Node syntax and Git diff check pass. Local Chrome/Playwright walkthrough passed all six tracks, timed custom mode, Practice/Labs switching, disclosures, all three incident cases and nine diagnostics, five-step report navigation, export and 1440px/390px/320px responsiveness, with no JS errors, horizontal overflow or unexpected off-origin requests. QA scripts/screenshots remain local under `Development/agentic-runs/cloudops-focused-*`; do not pretend they are downloadable from GitHub.
+Inspect these new/changed items in detail:
+- `index.html`, `mission-workspace.css`: visually isolated Brief / Inspect / Simulate / Report with keyboard focus, accessible active phase and native controls, responsive mobile, existing theme.
+- `incident-ui.mjs`: interactions and recorded evidence, only 2/3 checks required to proceed, option selection vs explicit simulation, repeated choice invalidation, stage transitions, editable note preservation, unsaved-exit confirmation, no duplicate evidence insertion, bounded 4,000-character report fields, ungraded JSON download.
+- `data/incident-actions.mjs`: three choices per public case; technical correctness under the **supplied synthetic assumptions** for IAM effective permissions, NAT public subnet route and DNS resolver logging limitations. Not secret paid answers.
+- `tests/incident-actions.test.mjs`, `qa/mission-browser-qa.mjs` and existing `qa/codex-p2-browser-qa.mjs`: test adequacy including alternative consequences, desktop/mobile screen and focus.
+- `docs/interactive-missions-v2-20261022.md`, `docs/auth-and-membership-gating-20261022.md`: planned Guest / Free / Pro gating is **not implemented**. Do not mistake a future tier plan for live auth or billing.
 
-## Reviewer instructions and safety
-Read `AGENTS.md`, root `CODEX_HANDOFF.md`, `docs/design-focused-workspace-20261022.md`, `docs/pilot-scenarios-learner.md` and `docs/membership-architecture.md`. Verify real AWS technical correctness, XSS, keyboard and screen-reader affordances, disclosure focus, question modes/counts, draft loss, export and data minimization. Examine final diff *and* relevant surrounding code; distinguish confirmed vulnerabilities from guesses, with file/line/severity. The incident exercises remain explicitly synthetic and ungraded, and planned pricing is not active.
+## Current QA
 
-Codex is read-only reviewer, not implementation engineer. PR #10 received **two concrete P2 findings on `c68c567`** and both are addressed in the new corrective candidate. Do not use that older review as signoff for a later SHA or issue repetitive review requests; a single new exact-head submitted review after hosted CI is required. Do not invoke Codex local CLI under the owner's Windows identity. No GitHub owner approval, merge, deployment, entitlement activation, CI/Cursor automation change, secret exposure or spending is allowed. **OWNER REVIEW REQUIRED** before any final release decision.
+56/56 Node tests locally PASS; comprehensive browser QA all three cases and six original quiz tracks PASS, 1440/390/320px no overflow, no page JS errors or off-origin requests. Existing formatVersion=1 / grade=null export and 216 quiz IDs preserved. Old PR #10 P2s are already resolved and merged through PR #11.
+
+## Constraints
+
+- No new public premium content, AWS credentials, private instructor answer keys, live charge or real AWS simulator.
+- No membership account, third-party auth, billing integration, webhook creation, paid APIs or production deployment in this PR. The future commercial plan specifically requires *server-side* entitlement checks, private content, Stripe signed webhooks and moving the paid SaaS off GitHub Pages.
+- All author/committer attribution for the outgoing new CloudOps PR must use the separate engineering App; sole-owner approval by `@jmsgnnr` is mandatory, with most-recent-pusher protection intact.
+- Codex reviews but **does not code, merge, approve for the owner, deploy or modify protected settings**. If findings exist, return them as reproducible action items, then request a new exact-head review after correction.
+
+Docs to read: root `AGENTS.md`, root `CODEX_HANDOFF.md`, existing `docs/pilot-scenarios-learner.md`, the new mission design and paid architecture planning docs.
