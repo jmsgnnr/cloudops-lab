@@ -34,7 +34,7 @@ function inMemoryCas({forceConflicts=0}={}) {
 
 test("new account imports guest bookmark history in a conditional revision",async()=>{
   const store=inMemoryCas();
-  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids});
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,now:()=>new Date("2026-10-24T00:00:00.000Z")});
   const merged=await repo.mergeProgressAtomic("alice",guests[0]);
   assert.deepEqual(merged.bookmarks,[picks[0].id]);
   assert.equal(store.records.get("alice").revision,1);
@@ -43,7 +43,7 @@ test("new account imports guest bookmark history in a conditional revision",asyn
 });
 test("a repeated identical import does not incur another conditional database write",async()=>{
   const store=inMemoryCas();
-  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids});
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,now:()=>new Date("2026-10-24T00:00:00.000Z")});
   await repo.mergeProgressAtomic("alice",guests[0]);
   assert.equal(store.records.get("alice").revision,1);
   await repo.mergeProgressAtomic("alice",guests[0]);
@@ -51,7 +51,7 @@ test("a repeated identical import does not incur another conditional database wr
 });
 test("two simultaneous device imports retry against the latest revision and preserve both",async()=>{
   const store=inMemoryCas();
-  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids});
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,now:()=>new Date("2026-10-24T00:00:00.000Z")});
   const results=await Promise.all([
     repo.mergeProgressAtomic("alice",guests[0]),
     repo.mergeProgressAtomic("alice",guests[1])
@@ -62,9 +62,24 @@ test("two simultaneous device imports retry against the latest revision and pres
   assert.deepEqual(saved.missed,[picks[1].id]);
   assert.equal(store.records.get("alice").revision,2);
 });
+test("future-clock imports are rejected before any account write",async()=>{
+  const store=inMemoryCas();
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,
+    now:()=>new Date("2026-10-24T00:00:00.000Z")});
+  await repo.mergeProgressAtomic("alice",guests[0]);
+  const saved=structuredClone(store.records.get("alice"));
+  const bad={version:1,missed:[],bookmarks:[picks[1].id],attempts:[{
+    track:picks[0].track,mode:"practice",correct:1,total:1,percent:100,
+    finishedAt:"2099-01-01T00:00:00.000Z",
+    byDomain:{[picks[0].domain]:{correct:1,total:1}}
+  }]};
+  await assert.rejects(()=>repo.mergeProgressAtomic("alice",bad),e=>
+    e.code==="future_attempt_timestamp");
+  assert.deepEqual(store.records.get("alice"),saved);
+});
 test("compare-and-swap retries a contested write and then succeeds",async()=>{
   const store=inMemoryCas({forceConflicts:2});
-  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids});
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,now:()=>new Date("2026-10-24T00:00:00.000Z")});
   const result=await repo.mergeProgressAtomic("alice",guests[0]);
   assert.deepEqual(result.bookmarks,[picks[0].id]);
   assert.equal(store.records.get("alice").revision,1);
@@ -77,7 +92,7 @@ test("repeated conflict exhaustion fails explicitly and never loses existing sta
 });
 test("unverified account ID and incorrectly wired datastore cannot be accepted",async()=>{
   const store=inMemoryCas();
-  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids});
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,now:()=>new Date("2026-10-24T00:00:00.000Z")});
   await assert.rejects(()=>repo.getProgress("../alice"),/invalid_verified_subject/);
   await assert.rejects(()=>repo.mergeProgressAtomic("",guests[0]),/invalid_verified_subject/);
   assert.throws(()=>createAtomicProgressRepository({}),/not_configured/);
@@ -85,7 +100,7 @@ test("unverified account ID and incorrectly wired datastore cannot be accepted",
 test("a malformed revision or unexpected storage adapter response fails closed",async()=>{
   const store=inMemoryCas();
   store.records.set("alice",{revision:-100,progress:guests[0]});
-  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids});
+  const repo=createAtomicProgressRepository({...store,allowedQuestionIds:ids,now:()=>new Date("2026-10-24T00:00:00.000Z")});
   await assert.rejects(()=>repo.mergeProgressAtomic("alice",guests[1]),/invalid_progress_revision/);
   const bad=createAtomicProgressRepository({allowedQuestionIds:ids,
     readRecord:async()=>null,compareAndSwap:async()=>undefined});

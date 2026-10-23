@@ -29,7 +29,7 @@ const progress = (extra={})=>({
 const apiEvent = (method,path,subject=null,body=null,extra={})=>({
   rawPath:path, headers:{"content-type":"application/json"}, isBase64Encoded:false,
   requestContext:{http:{method},...(subject ? {authorizer:{jwt:{claims:{
-    sub:subject,iss:issuer,client_id:clientId,token_use:"access"
+    sub:subject,iss:issuer,client_id:clientId,token_use:"access",username:"user-"+subject
   }}}}:{})},
   ...(body!==null?{body:JSON.stringify(body)}:{}),...extra
 });
@@ -42,7 +42,7 @@ function harness({subscriptions={},beforeMerge=null}={}) {
     async getProgress(sub){calls.get.push(sub);return data.get(sub)??null;},
     async mergeProgressAtomic(sub,guest){calls.merge.push(sub);
       if(beforeMerge)await beforeMerge();
-      const result=mergeProgress(data.get(sub)??emptyProgress(),guest,ids);
+      const result=mergeProgress(data.get(sub)??emptyProgress(),guest,ids,{now});
       data.set(sub,result);return result;
     },
     async getSubscription(sub){calls.subscriptions.push(sub);return subscriptions[sub]??null;}
@@ -77,18 +77,30 @@ test("progress normalizer excludes forged question IDs and invalid attempts",()=
 });
 test("re-import merges attempts and bookmarks idempotently and respects the 30-attempt cap",()=>{
   const guest=progress();
-  const first=mergeProgress(emptyProgress(),guest,ids);
-  assert.deepEqual(mergeProgress(first,guest,ids),first);
+  const first=mergeProgress(emptyProgress(),guest,ids,{now});
+  assert.deepEqual(mergeProgress(first,guest,ids,{now}),first);
   const later=progress({attempts:[attempt(another,"2026-10-23T17:00:00.000Z")],
     bookmarks:[another.id],missed:[sample.id]});
-  const both=mergeProgress(first,later,ids);
+  const both=mergeProgress(first,later,ids,{now});
   assert.equal(both.attempts.length,2);
   assert.deepEqual(both.bookmarks,[another.id,sample.id].sort());
-  assert.equal(mergeProgress(both,later,ids).attempts.length,2);
+  assert.equal(mergeProgress(both,later,ids,{now}).attempts.length,2);
   const multiple=Array.from({length:30},(_,i)=>attempt(sample,
-    new Date(Date.UTC(2026,9,1+i,18,0,0)).toISOString()));
-  const capped=mergeProgress(progress({attempts:multiple}),progress(),ids);
+    new Date(Date.UTC(2026,8,1+i,18,0,0)).toISOString()));
+  const capped=mergeProgress(progress({attempts:multiple}),progress(),ids,{now});
   assert.equal(capped.attempts.length,30);
+});
+test("future-dated browser imports cannot evict an account's saved history",()=>{
+  const saved=progress({attempts:[attempt(sample,"2026-10-20T18:00:00.000Z")]});
+  const fakeFuture=Array.from({length:30},(_,i)=>attempt(sample,
+    new Date(Date.UTC(2099,0,1+i,12,0,0)).toISOString()));
+  const hostile=progress({attempts:fakeFuture});
+  const snapshot=JSON.stringify(saved);
+  assert.throws(()=>mergeProgress(saved,hostile,ids,{now}),
+    e=>e instanceof ProgressImportError && e.code==="future_attempt_timestamp");
+  assert.equal(JSON.stringify(saved),snapshot, "failed import must not mutate account history");
+  const nearFuture=progress({attempts:[attempt(sample,"2026-10-23T18:04:00.000Z")]});
+  assert.equal(mergeProgress(saved,nearFuture,ids,{now}).attempts.length,2);
 });
 test("an unauthenticated visitor remains a guest and cannot read account progress",async()=>{
   const {api,calls}=harness();
@@ -109,6 +121,16 @@ test("member identity requires Gateway context, matching issuer, access token an
     assert.equal((await api(input)).statusCode,401,key);
   }
   assert.equal((await api(apiEvent("GET","/api/v1/progress","alice"))).statusCode,200);
+});
+test("Cognito machine-to-machine access tokens cannot be mistaken for real learner accounts",async()=>{
+  const {api,calls}=harness({subscriptions:{alice:paid()}});
+  const token=apiEvent("GET","/api/v1/me","alice");
+  delete token.requestContext.authorizer.jwt.claims.username;
+  assert.deepEqual(body(await api(token)),{authenticated:false,tier:"guest"});
+  assert.deepEqual(calls.subscriptions,[]);
+  const paidReq=apiEvent("GET","/api/v1/labs/"+proLab+"/access","alice");
+  delete paidReq.requestContext.authorizer.jwt.claims.username;
+  assert.equal((await api(paidReq)).statusCode,401);
 });
 test("no subscription, unverified source or different account cannot elevate Free to Pro",()=>{
   assert.equal(resolveMembership({}).tier,"guest");
@@ -198,6 +220,18 @@ test("import belongs only to verified Cognito subject and is idempotent",async()
   assert.equal(alice.progress.attempts.length,1);
   assert.equal(bob.progress.attempts.length,0);
   assert.deepEqual(calls.merge,["alice","alice"]);
+});
+test("the API rejects a future-clock import and preserves the saved account",async()=>{
+  const {api,data}=harness();
+  const path="/api/v1/progress/import";
+  await api(apiEvent("POST",path,"alice",{importConsent:true,progress:progress()}));
+  const before=structuredClone(data.get("alice"));
+  const bad=progress({attempts:[attempt(sample,"2099-01-01T00:00:00.000Z")]});
+  const response=await api(apiEvent("POST",path,"alice",{importConsent:true,progress:bad}));
+  assert.equal(response.statusCode,400);
+  assert.equal(body(response).error,"future_attempt_timestamp");
+  assert.equal(JSON.stringify(data.get("alice")),JSON.stringify(before),
+    "rejected import must preserve the stored account data byte-for-byte");
 });
 test("premium status endpoint does not serve a scenario, its answers or a client unlock token",async()=>{
   const {api}=harness({subscriptions:{alice:paid()}});

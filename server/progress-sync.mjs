@@ -86,9 +86,19 @@ function attemptKey(a) {
  * preserves user work; new graded attempts can later clear missed via normal
  * recordAttempt. 30 most recent attempts kept; no silent replacement.
  */
-export function mergeProgress(current, imported, allowedQuestionIds) {
+export function mergeProgress(current, imported, allowedQuestionIds, { now = new Date() } = {}) {
   const left = normalizeProgress(current ?? emptyProgress(), allowedQuestionIds);
   const right = normalizeProgress(imported, allowedQuestionIds);
+  // Browser device clocks are untrusted. Do not let far-future timestamps
+  // crowd existing account attempts out of the 30-record retention window.
+  // Reject the import atomically so the learner can correct their clock or
+  // edit the local export; never silently replace their saved history.
+  const timestamp = now instanceof Date ? now.getTime() : NaN;
+  if (!Number.isFinite(timestamp)) throw new Error("invalid_server_clock");
+  const futureLimit = timestamp + 5 * 60 * 1000;
+  if (right.attempts.some(a => Date.parse(a.finishedAt) > futureLimit)) {
+    throw new ProgressImportError("future_attempt_timestamp");
+  }
   const attempts = new Map();
   for (const a of [...left.attempts, ...right.attempts]) attempts.set(attemptKey(a), a);
   return {

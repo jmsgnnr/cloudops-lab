@@ -18,10 +18,11 @@ export class ProgressWriteConflict extends Error {
 }
 
 export function createAtomicProgressRepository({
-  readRecord, compareAndSwap, allowedQuestionIds, maxRetries = 5
+  readRecord, compareAndSwap, allowedQuestionIds, maxRetries = 5,
+  now = () => new Date()
 } = {}) {
   if (typeof readRecord !== "function" || typeof compareAndSwap !== "function" ||
-      !(allowedQuestionIds instanceof Set) ||
+      !(allowedQuestionIds instanceof Set) || typeof now !== "function" ||
       !Number.isInteger(maxRetries) || maxRetries < 1 || maxRetries > 10) {
     throw new Error("progress_repository_not_configured");
   }
@@ -44,7 +45,7 @@ export function createAtomicProgressRepository({
       }
       const revision = previous?.revision ?? 0;
       const merged = mergeProgress(previous?.progress ?? emptyProgress(),
-        trustedImport, allowedQuestionIds);
+        trustedImport, allowedQuestionIds, { now: now() });
       // Repeated imports are idempotent: skip an unnecessary metered write.
       if (previous && JSON.stringify(merged) === JSON.stringify(
         normalizeProgress(previous.progress, allowedQuestionIds))) return merged;

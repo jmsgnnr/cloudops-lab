@@ -25,8 +25,11 @@ function trustedSubject(event, issuer, clientId) {
   // HTTP request bodies, Authorization headers and query strings are ignored.
   const claims = event?.requestContext?.authorizer?.jwt?.claims;
   if (!claims || typeof claims !== "object" || Array.isArray(claims)) return null;
+  // Machine-to-machine access tokens can also carry sub + client_id but do
+  // not have a human Cognito username. They must not become user accounts.
   if (claims.iss !== issuer || claims.token_use !== "access" ||
-      claims.client_id !== clientId || !validSubject(claims.sub)) return null;
+      claims.client_id !== clientId || !validSubject(claims.sub) ||
+      typeof claims.username !== "string" || !claims.username.trim()) return null;
   return claims.sub;
 }
 
