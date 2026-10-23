@@ -227,6 +227,7 @@ body::before { display: none; }
 .session-details .panel-head { margin-bottom: 0.75rem; }
 .session-details h2 { font-size: 1.05rem; }
 .session-details .field-grid { margin-bottom: 0.85rem; }
+.session-details .custom-track-field { grid-column: 1 / -1; }
 
 .workspace-utilities {
   display: grid;

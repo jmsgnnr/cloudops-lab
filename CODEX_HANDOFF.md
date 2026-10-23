@@ -8,7 +8,7 @@
 - Local engineering worktree: `Development/agentic-runs/cloudops-ux-labs-20261022`.
 - Proposed review branch: `feature/cloudops-instant-practice-interactive-labs-20261022`.
 - Base: the current `main`, including merged PR #6 progress-storage regression coverage, rebased onto after initial development from PR #9's `87d1a1a` candidate. This candidate contains the still-unmerged six-track and incident-lab work of PR #9; **do not imply that PR #9 has merged**.
-- Distinct existing PR: [CloudOps Lab v2 PR #9](https://github.com/jmsgnnr/cloudops-lab/pull/9) remains the previous six-track / keyboard-navigation candidate. Its exact-head independent Codex review was still marked *running* when this branch was staged. Do **not** request repetitive Codex reviews or claim its review completed without a submitted receipt.
+- Distinct existing PR: [CloudOps Lab v2 PR #9](https://github.com/jmsgnnr/cloudops-lab/pull/9) remains the previous six-track / keyboard-navigation candidate. It is superseded by consolidated [draft PR #10](https://github.com/jmsgnnr/cloudops-lab/pull/10). Do not request repetitive reviews on PR #9, merge both candidates independently, or infer a review result from a request.
 - Separate [Autopilot pilot PR #5](https://github.com/jmsgnnr/cloudops-lab/pull/5) is an inert proposal; do not activate it or change automation, CI permissions or costs.
 - No Gift repository work.
 
@@ -32,6 +32,14 @@ No real AWS connections, server grader, credentials, facilitator answer keys, or
 - Independent local Chrome/Playwright verification passed at **1440px, 390px and 320px**. Covered all six instant quiz entries, timed custom session, result/navigation paths, tab and disclosure behavior, all three incident cases and nine diagnostics, five-step report navigation and JSON export compatibility. No page JavaScript errors, horizontal overflow or unexpected external requests observed.
 - QA script: `Development/agentic-runs/cloudops-focused-qa-20261022.mjs`; local screenshots: `Development/agentic-runs/cloudops-focused-design-qa-20261022/`. These files are on the authorized workstation, not claimed to be uploaded to GitHub.
 - Visual decisions: `docs/design-focused-workspace-20261022.md`.
+
+## Current PR #10 Codex P2 corrections (October 22)
+
+- Codex submitted two exact-head P2 findings on PR #10 commit `c68c567`: a custom session could not independently select a different track, and quitting at question one left focus on a hidden control. See [PR #10 review](https://github.com/jmsgnnr/cloudops-lab/pull/10).
+- Scoped, deterministic correction now adds an explicit six-track native select to optional custom settings while preserving one-click untimed track cards. Changing the selected track refreshes the domain list, available counts, study reference and card ARIA state; it does not start a quiz.
+- Confirmed quit restores keyboard focus to the visible selected track. Cancelling quit leaves the question active. The user is not forced into an unplanned session.
+- Reproducible optional Playwright test: `qa/codex-p2-browser-qa.mjs`, using an installed Playwright module via `CLOUDOPS_PLAYWRIGHT_MODULE` or standard resolution. Actual local browser QA PASS on desktop and 390px mobile, including all six track quick starts, independent advanced-track selection, timed exam, cancel/accept, focus and Tab/Shift+Tab checks, no overflow or off-origin requests. Full previous UX regression also passed.
+- **53/53 existing Node tests passed**. No new CI package dependency, billing, credentials, repository settings, or deployment changes. New exact PR SHA and hosted CI must be verified after the next push. A submitted *new-head* Codex review—not the earlier c68c567 review—remains required before owner merge.
 
 ## Codex and owner gates
 

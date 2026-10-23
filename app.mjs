@@ -19,6 +19,7 @@ const dashboard = $("dashboard");
 const quizView = $("quiz-view");
 const resultsView = $("results-view");
 const trackGrid = $("track-grid");
+const customTrackSelect = $("custom-track-select");
 const domainSelect = $("domain-select");
 const modeSelect = $("mode-select");
 const countSelect = $("count-select");
@@ -112,6 +113,7 @@ function updateStats() {
 function setActiveTrack(trackId) {
   if (!TRACKS[trackId]) return;
   currentTrack = trackId;
+  customTrackSelect.value = trackId;
   for (const card of trackGrid.querySelectorAll(".track-card")) {
     const active = card.dataset.track === trackId;
     card.classList.toggle("is-active", active);
@@ -601,6 +603,10 @@ function onQuit() {
   stopTimer();
   session = null;
   showView("dashboard");
+  // The exit controls are now hidden. Move focus to a visible, selected track.
+  const selectedCard = [...trackGrid.querySelectorAll(".track-card")]
+    .find((card) => card.dataset.track === currentTrack);
+  (selectedCard ?? $("tab-practice")).focus({ preventScroll: true });
 }
 
 function onKeyDown(event) {
@@ -651,6 +657,12 @@ function init() {
     console.warn("Question bank validation:", validation.issues);
   }
   updateHeaderCounts();
+  for (const [trackId, track] of Object.entries(TRACKS)) {
+    const option = document.createElement("option");
+    option.value = trackId;
+    option.textContent = `${track.name} · ${track.code}`;
+    customTrackSelect.appendChild(option);
+  }
 
   trackGrid.addEventListener("click", (e) => {
     const card = e.target.closest(".track-card");
@@ -669,13 +681,14 @@ function init() {
     customButton.textContent = open ? "CLOSE SETTINGS ↑" : "CUSTOMIZE SESSION ↓";
     if (open) {
       customPanel.scrollIntoView({ behavior: "auto", block: "nearest" });
-      domainSelect.focus({ preventScroll: true });
+      customTrackSelect.focus({ preventScroll: true });
     } else {
       customButton.focus({ preventScroll: true });
     }
   };
   customButton.addEventListener("click", () => toggleSessionSettings(customPanel.hidden));
   $("close-settings").addEventListener("click", () => toggleSessionSettings(false));
+  customTrackSelect.addEventListener("change", () => setActiveTrack(customTrackSelect.value));
 
   const refreshSessionAvailability = () => {
     const count = refreshCountOptions();

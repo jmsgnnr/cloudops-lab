@@ -14,7 +14,8 @@ Preserve the project's independent, late-1990s operations-terminal identity, key
 ## Implemented local changes
 - The original header headline, pink eyebrow line, chartreuse emphasis, and concise metrics have been restored above the workspace tabs without restoring the long stacked homepage.
 - Practice and Field Labs are separate workspace views. Practice is the default.
-- A track click starts 10 untimed questions in that track, with all domains. Custom settings remain available on demand.
+- A track click starts 10 untimed questions in that track, with all domains. Custom settings remain available on demand **and have a separate native track selector**, so timed/domain/missed/bookmarked sessions do not require an unwanted quick start.
+- When a quiz is exited from its first question, focus returns to its visibly selected track card; cancelling exit keeps the session active. Both behaviors are covered in `qa/codex-p2-browser-qa.mjs` and verified on desktop/mobile.
 - Study references, progress controls, and the **unactivated** membership design are in collapsed drawers.
 - Field Lab cards use short, neutral previews; full case constraints and original evidence are available on request.
 - Every field investigation has three deterministic local diagnostic actions and a single visible report step at a time.
