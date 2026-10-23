@@ -1,0 +1,95 @@
+/* Simplified Field Labs: one primary action, secondary evidence on demand. */
+.simple-steps { grid-template-columns:repeat(3,minmax(0,1fr)); max-width:none; }
+.simple-steps>span { text-align:center; font-size:.72rem; white-space:normal; overflow-wrap:anywhere; }
+.simple-incident-status {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:.75rem;
+  border:1px solid var(--border-strong);
+  background:var(--ink-deep);
+  padding:1rem 1.1rem;
+  margin:0 0 1.3rem;
+}
+.simple-incident-status span { color:var(--muted); font:.66rem/1.4 var(--mono); letter-spacing:.04em; }
+.simple-incident-status strong { color:#f1b8ba; font:.82rem/1.35 var(--mono); }
+.mission-brief .mission-disclaimer { margin:1rem 0; }
+.mission-brief .case-context { margin-top:1rem; }
+.mission-workbench { max-width:980px; }
+.simple-workbench-intro { margin:0 0 1rem; }
+.simple-workbench-intro h3 { margin:.3rem 0 .4rem; color:var(--paper); font-size:clamp(1.25rem,3vw,1.7rem); }
+.simple-workbench-intro p { max-width:65ch; margin:0; font-size:.89rem; color:var(--muted); }
+.mission-workbench .playable-lab { margin:.7rem 0; }
+.mission-workbench .playable-topline h4 { margin:.3rem 0; }
+.mission-workbench .playable-topline p { margin:.4rem 0; }
+.simple-workbench-nav { margin:.9rem 0 1.3rem; }
+.simple-clues {
+  margin:1rem 0 0;
+  border:1px solid var(--border-strong);
+  background:var(--ink-deep);
+}
+.simple-clues>summary {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.55rem;
+  cursor:pointer;
+  padding:1rem 1.1rem;
+  color:var(--paper);
+  font-size:.91rem;
+  font-weight:650;
+  list-style:none;
+}
+.simple-clues>summary::-webkit-details-marker { display:none; }
+.simple-clues>summary::before { content:"+"; display:inline-block; font:1.2rem var(--mono); color:var(--acid); width:1rem; }
+.simple-clues[open]>summary::before { content:"−"; }
+.simple-clues>summary span:nth-of-type(1) { color:var(--muted); font-size:.77rem; font-weight:400; }
+.simple-clues>summary #clue-progress { margin-left:auto; font:.65rem var(--mono); color:var(--acid); }
+.simple-clue-intro { padding:0 1.1rem; margin:0 0 .8rem; color:var(--muted); font-size:.78rem; }
+.simple-clue-buttons { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; padding:0 1.1rem 1rem; }
+.simple-clue-button {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:.35rem .45rem;
+  text-align:left;
+  border:1px solid var(--border-strong);
+  background:var(--ink-raised);
+  color:var(--paper);
+  padding:.75rem;
+  cursor:pointer;
+}
+.simple-clue-button:hover,
+.simple-clue-button:focus-visible,
+.simple-clue-button[aria-pressed="true"] { border-color:var(--acid); }
+.simple-clue-button[aria-pressed="true"] { background:#202b1e; }
+.simple-clue-index { color:var(--acid); font:.66rem var(--mono); }
+.simple-clue-question { font-size:.79rem; font-weight:600; line-height:1.4; }
+.simple-clue-action { grid-column:2; font:.62rem var(--mono); color:var(--muted); }
+.simple-clue-output { margin:0 1.1rem 1rem; padding:1rem; background:#1b251b; border-left:3px solid var(--acid); }
+.simple-clue-output strong { display:block; font-size:.92rem; line-height:1.45; color:var(--paper); }
+.simple-clue-output>p { color:#b8c9b2; font-size:.82rem; margin:.6rem 0; line-height:1.5; }
+.simple-raw { margin-top:1rem; padding-top:.75rem; border-top:1px dashed var(--border-strong); }
+.simple-raw summary, .simple-full-case summary { cursor:pointer; color:var(--muted); font:.71rem/1.5 var(--mono); }
+.simple-raw>span { display:block; margin-top:.8rem; color:var(--muted); }
+.simple-raw pre { overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; font: .71rem/1.55 var(--mono); color:var(--paper); margin:.6rem 0 0; }
+.simple-full-case { margin:0 1.1rem 1rem; padding-top:.85rem; border-top:1px dashed var(--border); }
+.simple-full-case .incident-evidence { margin-top:.7rem; }
+.simple-full-case .incident-evidence pre { overflow-x:auto; overflow-wrap:anywhere; white-space:pre-wrap; }
+.simple-steps [aria-current="step"] { background:#20271d; color:var(--acid); }
+.simple-clue-button:focus-visible, .simple-clues summary:focus-visible,
+.simple-raw summary:focus-visible { outline:2px solid var(--focus); outline-offset:3px; }
+.mission-workbench .playable-topology { margin:.75rem 0; }
+.mission-workbench .playable-controls { gap:.55rem; }
+@media(max-width:680px){
+  .simple-steps>span { font-size:.61rem; padding:.65rem .18rem; }
+  .simple-clues>summary { padding:.9rem; align-items:flex-start; }
+  .simple-clues>summary span:nth-of-type(1) { flex-basis:70%; }
+  .simple-clues>summary #clue-progress { flex-basis:25%; text-align:right; }
+  .simple-clue-intro { padding:0 .9rem; }
+  .simple-clue-buttons { grid-template-columns:1fr; padding:0 .9rem .9rem; }
+  .simple-clue-button { align-items:center; }
+  .simple-clue-output { margin:0 .9rem .9rem; }
+  .simple-full-case { margin:0 .9rem .9rem; }
+  .simple-workbench-nav { gap:.5rem; }
+}

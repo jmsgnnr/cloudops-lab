@@ -1,50 +1,31 @@
-# CloudOps Lab / current engineering handoff
+# CloudOps Lab / simplified playable labs — exact-head review handoff
 
-**Snapshot: October 22, 2026.** This file describes the *new, isolated UX and interactive-lab review candidate*, not an authorization to release it. Verify the live GitHub branch head, reviews, checks and PR state before approval; this document is not live GitHub status.
+Date: October 23, 2026. **Review current GitHub SHA, not prior Codex review of f55f1e5.**
 
-## Repositories and review boundaries
+This bot-owned PR #14 replaces **unmerged PR #12** and targets merged `main` `f1a4d99`. Do not merge both. Separate PR #13 (offline account/entitlements) is not included, and no auth/billing is activated.
 
-- Repository: `jmsgnnr/cloudops-lab`. Owner: `@jmsgnnr`.
-- Local engineering worktree: `Development/agentic-runs/cloudops-ux-labs-20261022`.
-- Proposed review branch: `feature/cloudops-instant-practice-interactive-labs-20261022`.
-- Base: the current `main`, including merged PR #6 progress-storage regression coverage, rebased onto after initial development from PR #9's `87d1a1a` candidate. This candidate contains the still-unmerged six-track and incident-lab work of PR #9; **do not imply that PR #9 has merged**.
-- Distinct existing PR: [CloudOps Lab v2 PR #9](https://github.com/jmsgnnr/cloudops-lab/pull/9) remains the previous six-track / keyboard-navigation candidate. It is superseded by consolidated [draft PR #10](https://github.com/jmsgnnr/cloudops-lab/pull/10). Do not request repetitive reviews on PR #9, merge both candidates independently, or infer a review result from a request.
-- Separate [Autopilot pilot PR #5](https://github.com/jmsgnnr/cloudops-lab/pull/5) is an inert proposal; do not activate it or change automation, CI permissions or costs.
-- No Gift repository work.
+## UX and implementation
 
-## Product and compatibility contract
+User feedback on an actual screenshot: the forced Inspect step, repetitive Evidence Collected sidebar, original AWS policy dump and required two-check gate were confusing and not fun.
 
-CloudOps Lab is an independent, late-1990s dark engineering-ops-themed training tool. It contains **216 original quiz questions across six tracks** (180 original IDs plus 36 advanced preview questions), and **three separate synthetic, ungraded incident investigations**. The planned $10/month / $100/year pricing is a **design only**, not live billing.
+This exact replacement now uses three simple panels: **The problem → Fix & test → Optional notes**. The real interaction starts directly in a deterministic synthetic workbench; learners adjust three modeled system settings, RUN TEST, see how the modeled system reacts, retry and reset. No mandatory diagnostic collection.
 
-The new UX candidate:
-1. Restores the recognizable “Cloud knowledge, under pressure.” hero, but shows **Practice** and **Field Labs** in mutually exclusive tabs rather than scrolling through all features.
-2. Starts 10 untimed questions in all domains on a track click; retains optional custom session controls, exam mode and native keyboard interaction.
-3. Collapses progress, reference guides and future membership information behind user-invoked disclosures.
-4. Presents each synthetic IAM, NAT and DNS incident with **three local diagnostic checks**, expandable case notes and original artifacts.
-5. Shows **one of five report fields at a time**, preserving draft answers, safe field navigation, diagnostic attachment and existing ungraded versioned JSON exports.
+- `index.html` and `simple-missions.css`: remove the duplicate evidence sidebar, old Inspect gate, forced case-file view, guided-response selector and redundant action preview. A **Need a clue?** disclosure shows three optional questions with one short plain-English finding at a time; original AWS-style diagnostics and artifacts are hidden at a second/third level.
+- `incident-ui.mjs` and `data/mission-clues.mjs`: three-phase navigation and optional clue controller, report copy, no auto-upload; sanitized DOM operations via `textContent`; preserve original five-field `formatVersion:1` ungraded JSON export.
+- `data/playable-sandboxes.mjs`: clearer setting labels, same limited IAM/NAT/DNS teaching model; changing settings invalidates the most recent simulated result and disables stale debrief eligibility.
+- The optional report preserves **different attempts with the same status** (full observation comparison instead of first-line/status-only deduplication).
+- `qa/mission-browser-qa.mjs`: all three cases, no forced clue gate, clues one at a time with raw details collapsed, reset/retry, optional report/export and **two NAT failures with same status but different causes** preserved. Keep original `qa/codex-p2-browser-qa.mjs` checks for 6 tracks and keyboard focus.
 
-No real AWS connections, server grader, credentials, facilitator answer keys, or premium secrets belong in public source. Preserve the same localStorage key/schema, existing quiz IDs, scoring, question order remapping and export schema. Case evidence must not assert that missing VPC Flow Logs records prove no traffic to the Amazon-provided DNS resolver.
+## Old-head Codex findings addressed
 
-## Verified QA for this candidate (October 22)
+Codex found two P2 issues on `f55f1e5`:
+1. Guided-response preview after a previous virtual test could silently attach the older result. The competing preview flow **no longer exists**; only the most recent actual virtual test can be copied.
+2. Two distinct failures sharing one status were treated as duplicates. Fixed by comparing full modeled note; browser regression proves both explanations survive.
 
-- **53/53 Node tests passed** on the branch rebased to the latest `main`, including the merged storage regressions and three new local-investigation tests.
-- Node syntax checks and `git diff --check` passed.
-- Independent local Chrome/Playwright verification passed at **1440px, 390px and 320px**. Covered all six instant quiz entries, timed custom session, result/navigation paths, tab and disclosure behavior, all three incident cases and nine diagnostics, five-step report navigation and JSON export compatibility. No page JavaScript errors, horizontal overflow or unexpected external requests observed.
-- QA script: `Development/agentic-runs/cloudops-focused-qa-20261022.mjs`; local screenshots: `Development/agentic-runs/cloudops-focused-design-qa-20261022/`. These files are on the authorized workstation, not claimed to be uploaded to GitHub.
-- Visual decisions: `docs/design-focused-workspace-20261022.md`.
+Those old findings remain attached to an older commit until marked resolved with evidence. A **fresh exact-head Codex review** and green hosted CI are required before calling PR #14 owner-ready.
 
-## Current PR #10 Codex P2 corrections (October 22)
+## QA and boundaries
 
-- Codex submitted two exact-head P2 findings on PR #10 commit `c68c567`: a custom session could not independently select a different track, and quitting at question one left focus on a hidden control. See [PR #10 review](https://github.com/jmsgnnr/cloudops-lab/pull/10).
-- Scoped, deterministic correction now adds an explicit six-track native select to optional custom settings while preserving one-click untimed track cards. Changing the selected track refreshes the domain list, available counts, study reference and card ARIA state; it does not start a quiz.
-- Confirmed quit restores keyboard focus to the visible selected track. Cancelling quit leaves the question active. The user is not forced into an unplanned session.
-- Reproducible optional Playwright test: `qa/codex-p2-browser-qa.mjs`, using an installed Playwright module via `CLOUDOPS_PLAYWRIGHT_MODULE` or standard resolution. Actual local browser QA PASS on desktop and 390px mobile, including all six track quick starts, independent advanced-track selection, timed exam, cancel/accept, focus and Tab/Shift+Tab checks, no overflow or off-origin requests. Full previous UX regression also passed.
-- **53/53 existing Node tests passed**. No new CI package dependency, billing, credentials, repository settings, or deployment changes. Every final published SHA requires its own green hosted CI and an independent current-head Codex receipt (submitted review with findings, or the verified App-owned clean-review summary and receipt). The earlier c68c567 review cannot clear a later commit.
+Local **63/63 Node tests pass**; both Playwright suites pass 1440px/390px/320px, no horizontal overflow, page errors or external requests; desktop/mobile screenshots visually inspected on OMEN. Note that these are small deterministic educational models, not complete IAM simulation or real AWS changes. All 216 existing public questions and original localStorage data stay intact.
 
-## Codex and owner gates
-
-Codex is **independent final reviewer only**. Review the stabilized draft PR diff, especially event routing, focus/accessibility, hidden sections, report preservation, download payload, progress schema and secret/answer-key boundaries. Report reproducible findings; do not write code, push, review-approve, merge or deploy from the review role. A review request or running status is not a completed review. Do not run local Codex CLI under the owner's Windows identity.
-
-**Owner approval eligibility:** the repository requires `@jmsgnnr` as code owner, one approval, and approval by someone **other than the latest reviewable pusher**. To prevent a solo-owner approval deadlock, future agent changes must be committed **and** pushed under the dedicated `jmsgnnr-engineering-review[bot]` identity, never authored or committed under the owner's personal Git identity. The bot is responsible for implementation and publication; the owner alone supplies the required human code-owner approval. Preserve these protections; do not substitute a bot approval or bypass the rule. This provenance amendment is intended to establish bot attribution for the last reviewable change, but actual owner eligibility must be verified in GitHub after publication.
-
-The publisher uses the narrowly scoped GitHub App and creates **draft** review PRs only. A new PR is not approved by being created. **OWNER REVIEW REQUIRED**: only `@jmsgnnr` personally approves final PR readiness, merge and any separate deployment. No new Cursor automation/CI workflow activation, subscriptions, permissions or identity changes are authorized by this handoff.
+Bot author and committer must remain `jmsgnnr-engineering-review[bot]`; only owner `@jmsgnnr` supplies CODEOWNER approval. Do not merge, deploy, spend, provision Cognito/Stripe/AWS, change protection settings, or touch Gift. GitHub Pages deploys after any owner-authorized merge to main.

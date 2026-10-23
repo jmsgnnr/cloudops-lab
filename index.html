@@ -8,6 +8,9 @@
   <title>CloudOps Lab | Cloud Engineering Practice</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./focused-workspace.css">
+  <link rel="stylesheet" href="./mission-workspace.css">
+  <link rel="stylesheet" href="./playable-workspace.css">
+  <link rel="stylesheet" href="./simple-missions.css">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script type="module" src="./app.mjs"></script>
 </head>
@@ -156,36 +159,96 @@
       </article>
     </section>
     <section id="incident-view" class="incident-view" hidden aria-labelledby="incident-title">
-      <div class="incident-view-top"><button id="incident-exit" class="text-button" type="button">← BACK TO LABS</button><span>FIELD INVESTIGATION / SYNTHETIC CASE</span></div>
+      <div class="incident-view-top">
+        <button id="incident-exit" class="text-button" type="button">← BACK TO LABS</button>
+        <span>FIELD MISSION / SAFE SIMULATION</span>
+      </div>
       <div class="incident-view-head">
-        <span id="incident-code" class="section-number">INCIDENT / 01</span>
+        <span id="incident-code" class="section-number">CASE / 01</span>
         <h2 id="incident-title" tabindex="-1"></h2>
         <p id="incident-brief" class="incident-brief"></p>
-        <details id="incident-context" class="case-context">
-          <summary>CASE BRIEF &amp; OBJECTIVE <span>EXPAND ↓</span></summary>
-          <p id="incident-impact"></p>
-          <p id="incident-objective" class="incident-objective"></p>
-        </details>
       </div>
-      <div class="incident-workspace">
-        <section aria-labelledby="incident-evidence-title">
-          <div class="incident-console" aria-labelledby="incident-console-title">
-            <span class="section-number">INVESTIGATION / LOCAL SIMULATION</span>
-            <h3 id="incident-console-title">Run a diagnostic</h3>
-            <p class="incident-small">Choose a synthetic check and inspect the result. No AWS account, API calls, or automatic grading.</p>
-            <div id="incident-probes" class="incident-probe-actions" role="group" aria-label="Simulated diagnostic checks"></div>
-            <div class="incident-terminal" aria-live="polite" aria-atomic="true"><span id="incident-probe-label">AWAITING DIAGNOSTIC</span><pre id="incident-probe-output">Select a check to inspect an observation.</pre><p id="incident-probe-prompt"></p></div>
-            <div class="incident-console-footer"><span id="incident-probe-count">0 CHECKS RUN</span><button id="incident-attach" class="outline-button" type="button" disabled>ATTACH TO REPORT EVIDENCE ↓</button></div>
+      <nav class="mission-steps simple-steps" aria-label="Mission progress">
+        <span data-mission-step="brief" aria-current="step">01 / The problem</span>
+        <span data-mission-step="workbench">02 / Fix &amp; test</span>
+        <span data-mission-step="report">03 / Optional notes</span>
+      </nav>
+      <section id="mission-brief" class="mission-stage mission-brief">
+        <span class="section-number">YOUR FIRST TROUBLESHOOTING MISSION</span>
+        <h3 id="mission-headline"></h3>
+        <p id="mission-objective" class="mission-objective"></p>
+        <div class="simple-incident-status">
+          <span>CURRENT SYSTEM STATE</span>
+          <strong id="mission-signal"></strong>
+        </div>
+        <button id="mission-start" class="primary-button" type="button">OPEN THE WORKBENCH →</button>
+        <p class="mission-disclaimer">A safe, fictional AWS environment. No real resources, API calls, or charges.</p>
+        <details id="incident-context" class="case-context">
+          <summary>Read the full incident background</summary>
+          <p id="incident-impact"></p>
+          <p id="incident-objective"></p>
+        </details>
+      </section>
+      <section id="mission-workbench" class="mission-stage mission-workbench" hidden>
+        <div class="simple-workbench-intro">
+          <span class="section-number">YOUR WORKBENCH</span>
+          <h3 id="workbench-headline">Change something. See what happens.</h3>
+          <p id="workbench-goal"></p>
+        </div>
+        <div id="playable-lab" class="playable-lab" aria-label="Interactive troubleshooting sandbox">
+          <div class="playable-topline">
+            <div><span class="section-number">VIRTUAL SYSTEM / NOT LIVE AWS</span><h4 id="playable-title"></h4><p id="playable-task"></p></div>
+            <span id="playable-badge" class="playable-badge">NOT TESTED</span>
           </div>
-          <details class="incident-evidence-drawer">
-            <summary id="incident-evidence-title">CASE FILE / ORIGINAL ARTIFACTS <span>EXPAND ↓</span></summary>
-            <p class="incident-small">Original synthetic evidence. Compare these artifacts with the diagnostic output.</p>
+          <div id="playable-topology" class="playable-topology" aria-label="Simulated system components"></div>
+          <div id="playable-controls" class="playable-controls" role="group" aria-label="Virtual system settings"></div>
+          <div class="playable-toolbar">
+            <button id="playable-test" type="button" class="primary-button">RUN TEST →</button>
+            <button id="playable-reset" type="button" class="outline-button">↺ RESET</button>
+            <span id="playable-attempts">0 TESTS</span>
+          </div>
+          <div id="playable-result" class="playable-result" aria-live="polite" hidden>
+            <strong id="playable-verdict"></strong>
+            <p id="playable-explanation"></p>
+            <code id="playable-evidence"></code>
+          </div>
+        </div>
+        <div class="mission-navigation simple-workbench-nav">
+          <button id="mission-back-brief" class="outline-button" type="button">← THE PROBLEM</button>
+          <button id="mission-to-report" class="outline-button" type="button" disabled>OPTIONAL DEBRIEF →</button>
+        </div>
+        <details id="mission-clues" class="simple-clues">
+          <summary>Need a clue? <span>Three quick checks explained in plain English</span><span id="clue-progress">0 / 3</span></summary>
+          <p class="simple-clue-intro">Explore one clue at a time. You can return to testing whenever you want.</p>
+          <div id="clue-buttons" class="simple-clue-buttons" role="group" aria-label="Optional investigation clues"></div>
+          <div id="clue-output" class="simple-clue-output" hidden aria-live="polite">
+            <strong id="clue-finding"></strong>
+            <p id="clue-meaning"></p>
+            <details id="clue-raw" class="simple-raw">
+              <summary>View original AWS-style diagnostic</summary>
+              <span id="clue-query" class="section-number"></span>
+              <pre id="clue-text"></pre>
+            </details>
+          </div>
+          <details class="simple-full-case">
+            <summary>Advanced: full original case file</summary>
             <div id="incident-evidence" class="incident-evidence"></div>
           </details>
-        </section>
+        </details>
+      </section>
+      <section id="mission-report" class="mission-stage mission-report" hidden>
+        <div class="mission-navigation mission-report-top">
+          <span>Optional: write down what you changed and learned. Your report stays on your device.</span>
+          <button id="mission-back-decide" class="outline-button" type="button">← BACK TO SYSTEM</button>
+        </div>
         <form id="incident-response" class="incident-response" novalidate>
-          <h3>Your incident report</h3>
-          <p class="incident-small">Five short steps. Your answers stay in this tab until you export them.</p>
+          <h3>Your troubleshooting notes</h3>
+          <p class="incident-small">Five optional guided writing steps. Complete all five only if you want to export a report.</p>
+          <div class="mission-report-evidence">
+            <span id="mission-report-evidence-count">0 CLUES OPENED</span>
+            <button id="incident-attach" class="outline-button" type="button" disabled>ADD CLUES</button>
+            <button id="mission-use-decision" class="outline-button" type="button" disabled>ADD TEST RESULT</button>
+          </div>
           <div id="incident-report-progress" class="incident-report-progress" aria-live="polite">STEP 1 OF 5</div>
           <div id="incident-fields"></div>
           <div class="incident-step-controls">
@@ -193,12 +256,12 @@
             <button id="incident-step-next" class="primary-button" type="button">NEXT STEP →</button>
           </div>
           <div class="incident-actions">
-            <button id="incident-submit" class="primary-button" type="submit" hidden>EXPORT FOR REVIEW ↗</button>
-            <button class="outline-button" id="incident-reset" type="button">CLEAR ANSWERS</button>
+            <button id="incident-submit" class="primary-button" type="submit" hidden>EXPORT NOTES ↗</button>
+            <button class="outline-button" id="incident-reset" type="button">CLEAR NOTES</button>
           </div>
           <p id="incident-status" class="config-note" role="status" aria-live="polite"></p>
         </form>
-      </div>
+      </section>
     </section>
     <section id="results-view" class="results-view" hidden aria-labelledby="results-title">
       <span class="section-number">SESSION COMPLETE / DEBRIEF</span>

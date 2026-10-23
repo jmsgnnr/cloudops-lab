@@ -1,21 +1,15 @@
-# CloudOps Lab: final independent review scope (October 22, 2026)
+# Codex exact-head review: simplified playable missions
 
-**This is a current-candidate handoff, not a live GitHub status report.** Always establish exact reviewed PR head, submitted review and hosted check status from GitHub. See root `CODEX_HANDOFF.md` for full provenance and restrictions.
+**Date October 23, 2026.** PR #14 replaces unmerged PR #12; PR #13 is a separate offline backend draft. Review the **currently published PR #14 HEAD** after its updated CI, not previously reviewed `f55f1e5`.
 
-## Review target
-Repository `jmsgnnr/cloudops-lab`; branch `feature/cloudops-instant-practice-interactive-labs-20261022`. Built from PR #9's six-track/incident-lab candidate and then rebased on `main` after merged PR #6 progress-storage regression tests. **PR #9 is not represented as merged.** A separate draft PR should be the final review target after the feature stops changing.
+## High-value checks
 
-## New code to scrutinize
-- `index.html`, `focused-workspace.css`, `styles.css`, `app.mjs`: original hero restored with focused Practice and Field Labs tabs; instant 10-question untimed track starts; custom exam/session controls preserved; disclosure panels should not block input or focus.
-- `incident-ui.mjs`, `data/incident-probes.mjs`, `data/incident-pilots.mjs`: three deterministic local-only diagnostic actions per synthetic scenario; one visible report field out of five; preserved answers, optional evidence attachments, guarded navigation/reset and existing ungraded JSON export.
-- `tests/incident-probes.test.mjs` and existing suites: original question IDs, bank validation, browser progress schema and grade-null contract remain intact.
-- **PR #10 Codex P2 remediation:** `index.html` provides `#custom-track-select` in advanced setup, `app.mjs` binds it to `setActiveTrack` independently of instant-start cards, refreshes available domains/counts, and restores focus to visible selected track on confirmed exit. `focused-workspace.css` keeps selector legible in both desktop and mobile layouts. Review cancellation behavior and last-track Tab/Shift+Tab path without inventing a separate focus trap.
-- `qa/codex-p2-browser-qa.mjs`: committed optional Playwright browser regression with no mandatory package dependency. It checks six-track selection, timed custom session, confirmed/cancelled exits, desktop/mobile focus restoration and no unexpected off-origin requests.
+1. `index.html`, `simple-missions.css`: learner lands directly in playable **Fix & test** without mandatory static diagnostics; only one active panel; meaningful default objective; optional clue drawer, original AWS-style text behind nested explicit disclosure. Keyboard focus, hidden panels, 320/390/1440 responsive layouts and quiz track navigation.
+2. `incident-ui.mjs`, `data/mission-clues.mjs`: 3 clues per case map correctly to the original public probes. Changing cases resets clues/notes/test eligibility. Only most recent played outcome is attachable; report fields not silently overwritten.
+3. Prior P2 on old head: guided preview vs virtual test stale attachment **removed by design** (no competing guided action selector); same-status distinct virtual tests **both retained**, with explicit browser regression in NAT lab.
+4. `data/playable-sandboxes.mjs`, `playable-ui.mjs`: IAM Allow/boundary and overbroad bypass, NAT three-path assumptions, DNS impossible historical reconstruction are **scoped synthetic teaching models**, never live AWS API calls or claims of general security correctness.
+5. No XSS, secret/credential leakage, premium answer key, production billing, auth or AWS provisioning; `formatVersion:1` / `grade:null` remains exported. Free public practice/history storage and six tracks preserved.
 
-## Verified engineering evidence
-October 22 after latest main rebase: **53/53 Node tests pass**. Node syntax and Git diff check pass. Local Chrome/Playwright walkthrough passed all six tracks, timed custom mode, Practice/Labs switching, disclosures, all three incident cases and nine diagnostics, five-step report navigation, export and 1440px/390px/320px responsiveness, with no JS errors, horizontal overflow or unexpected off-origin requests. QA scripts/screenshots remain local under `Development/agentic-runs/cloudops-focused-*`; do not pretend they are downloadable from GitHub.
+Local **63/63 Node** tests pass; Playwright `qa/mission-browser-qa.mjs` all three cases, 1440/390/320 responsive, no off-origin requests/errors; original `qa/codex-p2-browser-qa.mjs` likewise passes. Hosted CI and current-head Codex receipt must be independently checked before owner-ready status.
 
-## Reviewer instructions and safety
-Read `AGENTS.md`, root `CODEX_HANDOFF.md`, `docs/design-focused-workspace-20261022.md`, `docs/pilot-scenarios-learner.md` and `docs/membership-architecture.md`. Verify real AWS technical correctness, XSS, keyboard and screen-reader affordances, disclosure focus, question modes/counts, draft loss, export and data minimization. Examine final diff *and* relevant surrounding code; distinguish confirmed vulnerabilities from guesses, with file/line/severity. The incident exercises remain explicitly synthetic and ungraded, and planned pricing is not active.
-
-Codex is read-only reviewer, not implementation engineer. PR #10 received **two concrete P2 findings on `c68c567`** and both are addressed in the new corrective candidate. Do not use that older review as signoff for a later SHA or issue repetitive review requests; a single new exact-head submitted review after hosted CI is required. Do not invoke Codex local CLI under the owner's Windows identity. No GitHub owner approval, merge, deployment, entitlement activation, CI/Cursor automation change, secret exposure or spending is allowed. **OWNER REVIEW REQUIRED** before any final release decision.
+Read-only review only. If material findings remain, return exact file+line references for authorized remediation. No automated merge, code-owner approval, protected-settings change, paid provider spend, external AWS changes, or Gift modifications.

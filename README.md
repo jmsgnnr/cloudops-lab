@@ -19,11 +19,11 @@ Independent, browser-only AWS practice and cloud engineering scenario tool. Thes
 
 ## Field investigation pilots (local, free)
 
-Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. Select a case from the Field Lab panel to inspect evidence and complete a five-part engineering incident report (diagnosis, supporting evidence, safe action, verification and rollback/preservation). Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; unfinished navigation now triggers the browser's native unsaved-changes warning where supported, but a reload can still discard unfinished work if that warning is suppressed or bypassed. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
+Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. The main lab flow is now **The problem → Fix & test → Optional notes**. Start in a *playable virtual system*: change IAM boundary settings, NAT routes or future DNS logging, run a simulated system test and see the result. **No diagnostic gate or repetitive evidence sidebar.** Three optional plain-English clues reveal one explanation at a time, with original AWS-style logs available only under an explicit technical disclosure. The five-part facilitator report remains optional. These are local educational models, not real AWS control-plane changes. Learners can revisit stages without losing drafted answers. Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; unfinished written notes trigger the browser's native unsaved-changes warning where supported. Playing with simulator controls alone does not nag the learner when exiting; a reload can discard unfinished notes if the warning is bypassed. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
 
 The learner scenario specification is `docs/pilot-scenarios-learner.md`. The facilitator grading key is **intentionally outside the repository**, not in the publicly served JavaScript. Review the scenarios with an AWS subject-matter expert and pilot learners before suggesting reliable outcomes. The UI and new static cases must not be mistaken for protected premium content.
 
-Codex GitHub Code Review is **operational**. [Draft PR #2](https://github.com/jmsgnnr/cloudops-lab/pull/2) contains the authoritative review history and current findings. Corrections are returned to engineering and retested. Passing tests or a completed Codex review never substitute for the owner's PR approval and separate deployment authorization. See `docs/codex-final-review-handoff.md`.
+Codex GitHub Code Review is operational. [CloudOps PR #11](https://github.com/jmsgnnr/cloudops-lab/pull/11) was owner-approved and merged as the baseline focused workspace. This new isolated development candidate does **not** have automatic merge or deployment authorization. Codex reviews the final new draft head after CI; passing tests alone never substitute for the owner's personal approval. See `AGENTS.md` and `docs/interactive-missions-v2-20261022.md`.
 
 **Not affiliated with or endorsed by Amazon Web Services.** Original practice scenarios are based on published AWS technical concepts. Exam guides and domain weights guide study metadata, but the shortened previews do not match actual exam length, scoring or content distribution.
 
@@ -46,7 +46,7 @@ Results show domain breakdown and a review. Attempts, missed IDs and bookmarks s
 
 The local feature-branch UI displays **planned pricing** of **$10/month or $100/year** (save $20 versus monthly). **No checkout, subscription, account, billable service or premium access enforcement exists yet.** Advanced samples are currently visible locally and must not be treated as protected paid content in a public static build.
 
-Production paid content needs a separate private server-side question store and server-scored sessions, authentication, billing-provider webhook reconciliation, access controls and commercial hosting. Do not publish the private premium question bank in JavaScript bundles. See [membership architecture and release gates](docs/membership-architecture.md).
+Production paid content needs a separate private server-side question store and server-scored sessions, authentication, billing-provider webhook reconciliation, access controls and commercial hosting. Do not publish the private premium question bank in JavaScript bundles. Free anonymous use remains available; registration is optional. **No login, premium gate, or checkout is implemented in this UX candidate.** See [access tiers, sign-in, API contracts and phased billing gates](docs/auth-and-membership-gating-20261022.md) and [earlier AWS membership architecture](docs/membership-architecture.md).
 
 ## Test and quality workflow
 
@@ -57,7 +57,7 @@ node --check engine.mjs
 node --check data/advanced-challenges.mjs
 ```
 
-The challenge set has assertions for track counts, domain coverage, stable IDs, explanations, multi-select ratio and quiz-engine integration. Automated tests alone do not prove that each answer is technically accurate. Conduct independent technical review and desktop/mobile browser verification before releasing.
+The challenge set has assertions for track counts, domain coverage, stable IDs, explanations, multi-select ratio and quiz-engine integration. New `tests/incident-actions.test.mjs`, `tests/playable-sandboxes.test.mjs` and `tests/mission-clues.test.mjs` validate the public synthetic action set, new learner-first clues and unchanged ungraded export schema. Playwright scripts `qa/mission-browser-qa.mjs` and `qa/codex-p2-browser-qa.mjs` cover the hands-on virtual controls, optional clues, duplicate-status regression, exports and earlier keyboard/quiz fixes at desktop and mobile sizes. Automated tests alone do not prove that each AWS technical claim is accurate. Conduct independent technical review and desktop/mobile browser verification before releasing.
 
 ## Provenance and limitations
 
@@ -75,8 +75,11 @@ The challenge set has assertions for track counts, domain coverage, stable IDs, 
 
 - `index.html` - accessible UI skeleton and planned pricing
 - `app.mjs` - browser session and progress flow
-- `styles.css` - late-1990s operations-console theme
+- `styles.css`, `focused-workspace.css`, `mission-workspace.css`, `playable-workspace.css`, `simple-missions.css` - original engineering-console theme, simplified lab layout
 - `engine.mjs` - selection, scoring and progress functions
 - `data/` - question banks, guides and metadata
 - `tests/` - dependency-free Node unit and bank tests
-- `docs/membership-architecture.md` - proposed commercial system, not live integration
+- `incident-ui.mjs`, `data/incident-probes.mjs`, `data/incident-actions.mjs` - local guided investigation controller, synthetic diagnostics and simulated consequences
+- `docs/interactive-missions-v2-20261022.md` - learning UX and future stateful simulator roadmap
+- `docs/auth-and-membership-gating-20261022.md` - planned Guest/Free/Pro gates, Cognito/Stripe staging and server-side entitlements only; not live integration
+- `docs/membership-architecture.md` - original proposed commercial system, not live integration
