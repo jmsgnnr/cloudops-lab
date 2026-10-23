@@ -1,27 +1,16 @@
-# Exact-head Codex review brief: guided missions v2
+# Codex final review: playable labs replacement PR
 
-**October 22, 2026.** Verify live PR head and CI after publication; these are local pre-push results, not a claim of GitHub clearance.
+Review ONLY current PR head, not old PR #12. PR #12 is superseded; PR #13 is a separate unmerged offline authentication foundation.
 
-## Base and intended diff
+Changes against last released `main`:
+- Guided four-phase missions and public action data `incident-ui.mjs`, `data/incident-actions.mjs`, `mission-workspace.css`.
+- NEW playable stateful mini-sandboxes `data/playable-sandboxes.mjs` + `playable-ui.mjs` + `playable-workspace.css`.
+- `index.html` primary Run System Test controls, fallback guided drawer, optional report flow.
+- Tests `tests/playable-sandboxes.test.mjs`, `tests/incident-actions.test.mjs`, updated `qa/mission-browser-qa.mjs`; prior `qa/codex-p2-browser-qa.mjs` remains unchanged and passing.
+- Future Guest/Free/Pro architecture documented ONLY, no login/payment/auth activation.
 
-Base: `main` merge `f1a4d99` (owner-approved CloudOps focused workspace PR #11). Branch `feature/cloudops-interactive-labs-access-plan-20261022` adds no dependencies, no new paid provider integrations, no secrets, no GitHub workflow changes.
+Verify IAM model stays bounded; NAT state represents three modeled prerequisites, not real networking; DNS cannot backfill unavailable historical logs; no XSS, leaks, premium data, hidden stale state, dropped learner draft or keyboard traps. Verify export `formatVersion=1`, `grade=null`.
 
-Inspect these new/changed items in detail:
-- `index.html`, `mission-workspace.css`: visually isolated Brief / Inspect / Simulate / Report with keyboard focus, accessible active phase and native controls, responsive mobile, existing theme.
-- `incident-ui.mjs`: interactions and recorded evidence, only 2/3 checks required to proceed, option selection vs explicit simulation, repeated choice invalidation, stage transitions, editable note preservation, unsaved-exit confirmation, no duplicate evidence insertion, bounded 4,000-character report fields, ungraded JSON download.
-- `data/incident-actions.mjs`: three choices per public case; technical correctness under the **supplied synthetic assumptions** for IAM effective permissions, NAT public subnet route and DNS resolver logging limitations. Not secret paid answers.
-- `tests/incident-actions.test.mjs`, `qa/mission-browser-qa.mjs` and existing `qa/codex-p2-browser-qa.mjs`: test adequacy including alternative consequences, desktop/mobile screen and focus.
-- `docs/interactive-missions-v2-20261022.md`, `docs/auth-and-membership-gating-20261022.md`: planned Guest / Free / Pro gating is **not implemented**. Do not mistake a future tier plan for live auth or billing.
+Local: 61/61 tests PASS, two real Playwright suites PASS at desktop/mobile, no overflow/runtime errors/off-origin requests. Hosted exact-head CI must pass independently.
 
-## Current QA
-
-56/56 Node tests locally PASS; comprehensive browser QA all three cases and six original quiz tracks PASS, 1440/390/320px no overflow, no page JS errors or off-origin requests. Existing formatVersion=1 / grade=null export and 216 quiz IDs preserved. Old PR #10 P2s are already resolved and merged through PR #11.
-
-## Constraints
-
-- No new public premium content, AWS credentials, private instructor answer keys, live charge or real AWS simulator.
-- No membership account, third-party auth, billing integration, webhook creation, paid APIs or production deployment in this PR. The future commercial plan specifically requires *server-side* entitlement checks, private content, Stripe signed webhooks and moving the paid SaaS off GitHub Pages.
-- All author/committer attribution for the outgoing new CloudOps PR must use the separate engineering App; sole-owner approval by `@jmsgnnr` is mandatory, with most-recent-pusher protection intact.
-- Codex reviews but **does not code, merge, approve for the owner, deploy or modify protected settings**. If findings exist, return them as reproducible action items, then request a new exact-head review after correction.
-
-Docs to read: root `AGENTS.md`, root `CODEX_HANDOFF.md`, existing `docs/pilot-scenarios-learner.md`, the new mission design and paid architecture planning docs.
+This is a bot-owned candidate; only `@jmsgnnr` can approve and merge. Codex review is not owner approval. Never merge, deploy, spend, change permissions or protected settings, or edit Gift.
