@@ -1,0 +1,235 @@
+/* Guided Field Labs v2 - one task per screen.
+   Additive to the original CloudOps terminal language, not a visual rebrand. */
+.mission-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 1.2rem;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.mission-steps > span {
+  display: block;
+  padding: 0.75rem 0.9rem;
+  background: var(--ink-deep);
+  color: var(--muted-dim);
+  font: 0.67rem/1.35 var(--mono);
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+}
+.mission-steps > [aria-current="step"] {
+  background: #20271d;
+  color: var(--acid);
+  box-shadow: inset 0 2px 0 var(--acid);
+}
+.mission-steps > .is-complete {
+  background: #161c17;
+  color: #b2bf9c;
+}
+.mission-stage { min-width: 0; }
+.mission-stage h3 {
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  font-weight: 650;
+  margin: 0.45rem 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+.mission-stage p { line-height: 1.55; }
+.mission-brief {
+  padding: clamp(1.3rem, 4vw, 2.6rem);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--acid);
+  background: #111713;
+  max-width: 880px;
+}
+.mission-brief h3 { font-size: clamp(1.8rem, 4.5vw, 2.7rem); }
+.mission-objective {
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  color: var(--paper);
+  max-width: 66ch;
+  margin: 0.45rem 0 1.5rem;
+}
+.mission-disclaimer {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.77rem;
+  max-width: 64ch;
+}
+.mission-brief .primary-button { min-height: 48px; }
+.mission-investigation-grid {
+  grid-template-columns: minmax(0, 1.25fr) minmax(275px, .75fr);
+  gap: 0.9rem;
+}
+.mission-investigation-grid .incident-console { margin-bottom: 0.75rem; }
+.mission-investigation-grid .incident-console h3 { margin-bottom: 0.4rem; }
+.mission-investigation-grid .incident-probe-actions { grid-template-columns: 1fr; }
+.mission-investigation-grid .incident-probe { padding: 0.65rem 0.7rem; }
+.mission-instruction {
+  color: var(--muted-dim);
+  font: 0.64rem/1.4 var(--mono);
+}
+.mission-evidence-board {
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: var(--ink-deep);
+  padding: 1.1rem 1rem;
+}
+.mission-evidence-board h3 { font-size: 1.2rem; margin-bottom: 0.4rem; }
+.mission-evidence-board > p { color: var(--muted); font-size: 0.8rem; margin: 0 0 1.2rem; }
+.mission-evidence-items {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.mission-evidence-items li {
+  background: var(--ink-raised);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.65rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.mission-evidence-items .mission-empty { font: 0.73rem var(--mono); }
+.mission-evidence-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--paper);
+  font: 0.73rem/1.5 var(--mono);
+  cursor: pointer;
+  text-align: left;
+}
+.mission-evidence-link:hover { color: var(--acid); }
+.mission-evidence-observed {
+  font: 0.56rem var(--mono);
+  color: var(--acid);
+}
+.mission-hint {
+  border-top: 1px dashed var(--border-strong);
+  padding-top: 0.75rem;
+  color: var(--muted);
+}
+.mission-hint summary { cursor: pointer; color: #c1d492; font: 0.72rem var(--mono); }
+.mission-hint p { margin: 0.5rem 0 0; font-size: 0.8rem; }
+.mission-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.9rem 0 0;
+}
+.mission-navigation button, .mission-decision > button { min-height: 42px; }
+.mission-navigation button:disabled, .mission-decision > button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+.mission-decision {
+  border: 1px solid var(--border-strong);
+  background: var(--ink-deep);
+  padding: clamp(1rem, 2.6vw, 1.6rem);
+}
+.mission-decision > p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin: 0 0 1rem;
+}
+.mission-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+}
+.mission-option {
+  min-width: 0;
+  padding: 1rem 0.9rem;
+  background: var(--ink-raised);
+  border: 1px solid var(--border-strong);
+  border-top: 2px solid var(--border-strong);
+  text-align: left;
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.mission-option:hover, .mission-option:focus-visible { border-color: var(--acid); }
+.mission-option[aria-pressed="true"] {
+  background: rgba(223,255,63,.075);
+  border-color: var(--acid);
+  border-top-color: var(--acid);
+}
+.mission-option-type {
+  font: 0.61rem var(--mono);
+  color: var(--pink);
+  letter-spacing: .04em;
+}
+.mission-option strong { font-size: 0.94rem; line-height: 1.3; }
+.mission-option small {
+  color: var(--muted);
+  font-size: 0.77rem;
+  line-height: 1.45;
+  margin-top: auto;
+}
+.mission-outcome {
+  border-left: 3px solid var(--acid);
+  background: #1a241c;
+  padding: 1.05rem 1.15rem;
+  margin-top: 1.05rem;
+  color: var(--paper);
+}
+.mission-outcome h4 { color: var(--acid); margin: 0.5rem 0; font-size: 1.18rem; }
+.mission-outcome p { color: #bbc6bd; font-size: 0.84rem; margin: 0.55rem 0; }
+.mission-outcome strong { color: var(--paper); }
+.mission-outcome .mission-caution {
+  border-top: 1px solid rgba(246,243,232,.12);
+  padding-top: 0.65rem;
+  color: #e0b8c8;
+  font-size: 0.79rem;
+}
+.mission-report { max-width: 870px; }
+.mission-report > .incident-response { margin-top: 0.9rem; }
+.mission-report-top { margin: 0; }
+.mission-report-top > span { font-size: 0.82rem; color: var(--muted); max-width: 45ch; }
+.mission-report-evidence {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.mission-report-evidence > span {
+  color: var(--acid);
+  font: 0.64rem/1.4 var(--mono);
+  margin-right: auto;
+}
+.mission-report-evidence button { font-size: 0.63rem; }
+.mission-report-evidence button:disabled { opacity: .45; cursor: not-allowed; }
+.mission-stage button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+@media (max-width: 850px) {
+  .mission-investigation-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 660px) {
+  .mission-steps > span { font-size: 0.54rem; padding: 0.64rem 0.35rem; text-align: center; }
+  .mission-brief { padding: 1.2rem; }
+  .mission-brief h3 { font-size: 1.7rem; }
+  .mission-options { grid-template-columns: 1fr; }
+  .mission-option { padding: 0.75rem 0.85rem; gap: 0.3rem; }
+  .mission-option strong { font-size: 0.87rem; }
+  .mission-option small { font-size: 0.72rem; }
+  .mission-evidence-board { padding: 0.85rem; }
+  .mission-report-top { align-items: flex-start; }
+  .mission-navigation .primary-button { flex: 1 1 auto; }
+  .mission-decision { padding: 1rem 0.9rem; }
+  .mission-report-evidence { align-items: stretch; }
+  .mission-report-evidence > span { flex: 1 0 100%; }
+}
