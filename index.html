@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090c0b">
-  <meta name="description" content="Independent AWS certification study and quiz tool for Cloud Practitioner, Security Specialty and Advanced Networking Specialty.">
-  <title>CloudOps Lab | AWS Certification Practice</title>
+  <meta name="description" content="Independent AWS certification study and advanced cloud engineering scenario exams.">
+  <title>CloudOps Lab | Cloud Engineering Practice</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./focused-workspace.css">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script type="module" src="./app.mjs"></script>
 </head>
@@ -14,17 +15,29 @@
   <a class="skip-link" href="#main">Skip to study tool</a>
   <header class="topbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><span>CLOUDOPS<span class="brand-accent"> LAB</span></span></div>
-    <div class="topbar-right"><span class="online-dot" aria-hidden="true"></span><span>LOCAL FIRST</span><span class="topbar-divider">/</span><span id="question-total">180 ORIGINAL QUESTIONS</span></div>
+    <div class="topbar-right"><span class="online-dot" aria-hidden="true"></span><span>LOCAL FIRST</span><span class="topbar-divider">/</span><span id="question-total">216 ORIGINAL QUESTIONS</span></div>
   </header>
   <main id="main" class="shell">
-    <section class="hero" aria-labelledby="main-title">
-      <div class="eyebrow"><span class="eyebrow-line"></span> BUILD THE KNOWLEDGE. PROVE THE SKILL.</div>
-      <h1 id="main-title">Cloud knowledge,<br><span class="accent-text">under pressure.</span></h1>
-      <p class="intro">Study the AWS exam domains, drill what you miss, and test yourself with original scenario questions. No account required. Your progress stays in this browser.</p>
-      <div class="meta-strip"><span>03 CERTIFICATION TRACKS</span><span class="meta-highlight" id="library-total">180 ORIGINAL QUESTIONS</span><span>BLUEPRINT DOMAIN GUIDE</span></div>
-    </section>
-    <section id="dashboard" class="dashboard" aria-labelledby="pick-title">
-      <div class="section-heading"><div><span class="section-number">01 / TRACK</span><h2 id="pick-title">Choose your path</h2></div><span class="section-note">START ANYWHERE</span></div>
+    <section id="dashboard" class="dashboard" aria-labelledby="main-title">
+      <header class="hero hero--compact">
+        <div class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> BUILD THE KNOWLEDGE. PROVE THE SKILL.</div>
+        <h1 id="main-title">Cloud knowledge,<br><span class="accent-text">under pressure.</span></h1>
+        <p class="intro">Study the AWS exam domains, drill what you miss, and investigate real-world engineering scenarios. No account required; your progress stays in this browser.</p>
+        <div class="meta-strip" aria-label="Available learning content">
+          <span>06 PRACTICE TRACKS</span>
+          <span class="meta-highlight" id="library-total">216 ORIGINAL QUESTIONS</span>
+          <span>03 FIELD LABS</span>
+        </div>
+      </header>
+      <nav class="workspace-tabs" aria-label="Training area">
+        <button type="button" id="tab-practice" class="workspace-tab is-current" aria-pressed="true" aria-controls="practice-home">PRACTICE <span>06 TRACKS</span></button>
+        <button type="button" id="tab-labs" class="workspace-tab" aria-pressed="false" aria-controls="lab-home">FIELD LABS <span>03 CASES</span></button>
+      </nav>
+      <section id="practice-home" aria-labelledby="pick-title">
+        <div class="section-heading workspace-section-head">
+          <div><h2 id="pick-title">Pick a track</h2><p class="track-instruction">One click starts 10 untimed questions.</p></div>
+          <button type="button" id="customize-session" class="outline-button" aria-expanded="false" aria-controls="session-details">CUSTOMIZE SESSION ↓</button>
+        </div>
       <div class="track-grid" id="track-grid">
         <button class="track-card is-active" data-track="practitioner" aria-pressed="true">
           <span class="track-topline"><span class="track-label">FOUNDATION / 01</span><span class="track-arrow">↗</span></span>
@@ -45,12 +58,35 @@
           <span class="track-footer">4 DOMAINS · <span class="track-count" data-count="networking">60 QUESTIONS</span></span>
           <span class="retirement-flag">Exam retires Dec 31, 2026</span>
         </button>
+        <button class="track-card track-card-advanced" data-track="architecture" aria-pressed="false">
+          <span class="track-topline"><span class="track-label">PRO CHALLENGE / 04</span><span class="track-arrow">↗</span></span>
+          <strong>Solutions Architect<br>Professional</strong><span class="track-code">SAP-C02</span>
+          <span class="track-desc">Enterprise design, resiliency, hybrid DNS and migration tradeoffs.</span>
+          <span class="track-footer">4 DOMAINS · <span class="track-count" data-count="architecture">12 QUESTIONS</span></span>
+          <span class="challenge-flag">12-QUESTION PREVIEW / ORIGINAL</span>
+        </button>
+        <button class="track-card track-card-advanced" data-track="devops" aria-pressed="false">
+          <span class="track-topline"><span class="track-label">PRO CHALLENGE / 05</span><span class="track-arrow">↗</span></span>
+          <strong>DevOps Engineer<br>Professional</strong><span class="track-code">DOP-C02</span>
+          <span class="track-desc">Safe deployments, IaC drift, delivery integrity and incident response.</span>
+          <span class="track-footer">6 DOMAINS · <span class="track-count" data-count="devops">12 QUESTIONS</span></span>
+          <span class="challenge-flag">12-QUESTION PREVIEW / ORIGINAL</span>
+        </button>
+        <button class="track-card track-card-advanced" data-track="fieldsecurity" aria-pressed="false">
+          <span class="track-topline"><span class="track-label">FIELD EXAM / 06</span><span class="track-arrow">↗</span></span>
+          <strong>Security Engineering<br>Field Exam</strong><span class="track-code">FIELD-SEC</span>
+          <span class="track-desc">Practical vulnerability triage, forensics, IAM and network diagnostics.</span>
+          <span class="track-footer">4 DOMAINS · <span class="track-count" data-count="fieldsecurity">12 QUESTIONS</span></span>
+          <span class="challenge-flag">INDEPENDENT SKILL ASSESSMENT</span>
+        </button>
       </div>
-      <div class="workbench-grid">
+        <div id="session-details" class="session-details" hidden>
+          <div class="session-details-top"><span>ADVANCED OPTIONS / OPTIONAL</span><button type="button" id="close-settings" class="text-button">CLOSE ×</button></div>
         <section class="panel quiz-config" aria-labelledby="setup-title">
-          <div class="panel-head"><div><span class="section-number">02 / PRACTICE</span><h2 id="setup-title">Configure a session</h2></div></div>
+          <div class="panel-head"><div><span class="section-number">SESSION OPTIONS</span><h2 id="setup-title">Custom practice or exam</h2></div></div>
           <form id="session-form">
             <div class="field-grid">
+              <label class="field custom-track-field"><span>TRACK</span><select id="custom-track-select" aria-label="Custom session track"></select></label>
               <label class="field"><span>DOMAIN</span><select id="domain-select"><option value="all">All domains</option></select></label>
               <label class="field"><span>MODE</span><select id="mode-select"><option value="practice">Practice · answers as you go</option><option value="exam">Timed exam · reveal at end</option></select></label>
               <label class="field"><span>QUESTIONS</span><select id="count-select"><option value="5">5 questions</option><option value="10" selected>10 questions</option><option value="20">20 questions</option><option value="30">30 questions</option><option value="40">40 questions</option><option value="all">All available</option></select></label>
@@ -60,6 +96,16 @@
             <p class="config-note" id="session-hint" aria-live="polite">Select a track and start practicing.</p>
           </form>
         </section>
+        </div>
+      </section>
+      <section class="incident-launch" id="lab-home" hidden aria-labelledby="incident-launch-title">
+        <div class="section-heading"><div><span class="section-number">SIMULATED INVESTIGATIONS</span><h2 id="incident-launch-title" tabindex="-1">Field investigations</h2></div><span class="section-note">THREE CASES / NO AWS ACCOUNT</span></div>
+        <p class="incident-intro">Investigate simulated incidents, run diagnostics, and document a response. No live resources or automatic grading.</p>
+        <div id="incident-catalog" class="incident-catalog"></div>
+      </section>
+      <div class="workspace-utilities">
+        <details id="progress-details" class="workspace-drawer">
+          <summary>YOUR PROGRESS <span>↘</span></summary>
         <aside class="panel stats-panel" aria-labelledby="progress-title">
           <div class="panel-head"><div><span class="section-number">YOUR DATA / LOCAL</span><h2 id="progress-title">Progress snapshot</h2></div></div>
           <div class="stats-grid">
@@ -71,16 +117,34 @@
           <p class="stats-note">Nothing is uploaded. Sessions, missed questions and bookmarks are stored in your browser only.</p>
           <div class="secondary-actions"><button id="export-btn" class="text-button" type="button">EXPORT PROGRESS ↗</button><button id="reset-btn" class="text-button muted" type="button">RESET DATA</button></div>
         </aside>
-      </div>
+        </details>
+        <details id="study-details" class="workspace-drawer">
+          <summary>STUDY REFERENCES <span>↘</span></summary>
       <section class="guide-section" aria-labelledby="guide-title">
-        <div class="section-heading"><div><span class="section-number">03 / STUDY</span><h2 id="guide-title">Know the blueprint</h2></div><a id="official-guide" href="https://docs.aws.amazon.com/aws-certification/" target="_blank" rel="noopener noreferrer">OFFICIAL EXAM GUIDE ↗</a></div>
+        <div class="section-heading"><div><span class="section-number">REFERENCE</span><h2 id="guide-title">Study blueprint</h2></div><a id="official-guide" href="https://docs.aws.amazon.com/aws-certification/" target="_blank" rel="noopener noreferrer">OFFICIAL EXAM GUIDE ↗</a></div>
         <p class="guide-intro" id="guide-intro"></p>
         <div class="domain-grid" id="domain-grid"></div>
         <p class="footnote" id="retirement-note" hidden>Advanced Networking Specialty (ANS-C01) is scheduled to retire on December 31, 2026. Continue using this content for AWS networking skills, and confirm any exam plan with AWS.</p>
       </section>
+        </details>
+        <details id="about-details" class="workspace-drawer">
+          <summary>ABOUT &amp; ROADMAP <span>↘</span></summary>
+      <section class="membership-preview" aria-labelledby="membership-title">
+        <div>
+          <span class="section-number">PRODUCT ROADMAP</span>
+          <h2 id="membership-title">Planned membership</h2>
+          <p>Current challenge previews are free in this local prototype. Future paid membership will add larger, reviewed question banks and deeper performance analysis. Billing is not active and no purchase is possible here.</p>
+        </div>
+        <div class="membership-prices" aria-label="Planned subscription prices">
+          <div><span>MONTHLY / PLANNED</span><strong>$10<small> / MO</small></strong></div>
+          <div><span>YEARLY / PLANNED</span><strong>$100<small> / YR</small></strong><em>SAVE $20</em></div>
+        </div>
+      </section>
+        </details>
+      </div>
     </section>
     <section id="quiz-view" class="quiz-view" hidden aria-labelledby="quiz-title">
-      <div class="quiz-topline"><button class="text-button" id="quit-btn" type="button">← EXIT SESSION</button><span id="quiz-mode-label">PRACTICE MODE</span><span id="timer" aria-live="off">UNTIMED</span></div>
+      <div class="quiz-topline"><button class="text-button" id="quit-btn" type="button">← BACK TO TRACKS</button><span id="quiz-mode-label">PRACTICE MODE</span><span id="timer" aria-live="off">UNTIMED</span></div>
       <div class="question-progress" aria-hidden="true"><div id="progress-fill"></div></div>
       <div class="question-meta"><span id="question-position"></span><span id="question-domain"></span></div>
       <article class="question-panel">
@@ -88,8 +152,53 @@
         <h2 id="quiz-title" tabindex="-1"></h2>
         <div id="choice-list" class="choice-list" role="group" aria-label="Possible answers"></div>
         <div id="feedback" class="feedback" aria-live="polite" hidden></div>
-        <div class="question-actions"><button type="button" id="bookmark-btn" class="text-button">☆ SAVE QUESTION</button><div class="question-nav"><button id="prev-btn" class="outline-button" type="button">PREVIOUS</button><button id="check-btn" class="primary-button" type="button">CHECK ANSWER →</button><button id="next-btn" class="primary-button" type="button" hidden>NEXT QUESTION →</button></div></div>
+        <div class="question-actions"><button type="button" id="bookmark-btn" class="text-button">☆ SAVE QUESTION</button><div class="question-nav"><button id="prev-btn" class="outline-button" type="button">← BACK TO TRACKS</button><button id="check-btn" class="primary-button" type="button">CHECK ANSWER →</button><button id="next-btn" class="primary-button" type="button" hidden>NEXT QUESTION →</button></div></div>
       </article>
+    </section>
+    <section id="incident-view" class="incident-view" hidden aria-labelledby="incident-title">
+      <div class="incident-view-top"><button id="incident-exit" class="text-button" type="button">← BACK TO LABS</button><span>FIELD INVESTIGATION / SYNTHETIC CASE</span></div>
+      <div class="incident-view-head">
+        <span id="incident-code" class="section-number">INCIDENT / 01</span>
+        <h2 id="incident-title" tabindex="-1"></h2>
+        <p id="incident-brief" class="incident-brief"></p>
+        <details id="incident-context" class="case-context">
+          <summary>CASE BRIEF &amp; OBJECTIVE <span>EXPAND ↓</span></summary>
+          <p id="incident-impact"></p>
+          <p id="incident-objective" class="incident-objective"></p>
+        </details>
+      </div>
+      <div class="incident-workspace">
+        <section aria-labelledby="incident-evidence-title">
+          <div class="incident-console" aria-labelledby="incident-console-title">
+            <span class="section-number">INVESTIGATION / LOCAL SIMULATION</span>
+            <h3 id="incident-console-title">Run a diagnostic</h3>
+            <p class="incident-small">Choose a synthetic check and inspect the result. No AWS account, API calls, or automatic grading.</p>
+            <div id="incident-probes" class="incident-probe-actions" role="group" aria-label="Simulated diagnostic checks"></div>
+            <div class="incident-terminal" aria-live="polite" aria-atomic="true"><span id="incident-probe-label">AWAITING DIAGNOSTIC</span><pre id="incident-probe-output">Select a check to inspect an observation.</pre><p id="incident-probe-prompt"></p></div>
+            <div class="incident-console-footer"><span id="incident-probe-count">0 CHECKS RUN</span><button id="incident-attach" class="outline-button" type="button" disabled>ATTACH TO REPORT EVIDENCE ↓</button></div>
+          </div>
+          <details class="incident-evidence-drawer">
+            <summary id="incident-evidence-title">CASE FILE / ORIGINAL ARTIFACTS <span>EXPAND ↓</span></summary>
+            <p class="incident-small">Original synthetic evidence. Compare these artifacts with the diagnostic output.</p>
+            <div id="incident-evidence" class="incident-evidence"></div>
+          </details>
+        </section>
+        <form id="incident-response" class="incident-response" novalidate>
+          <h3>Your incident report</h3>
+          <p class="incident-small">Five short steps. Your answers stay in this tab until you export them.</p>
+          <div id="incident-report-progress" class="incident-report-progress" aria-live="polite">STEP 1 OF 5</div>
+          <div id="incident-fields"></div>
+          <div class="incident-step-controls">
+            <button id="incident-step-prev" class="outline-button" type="button" hidden>← PREVIOUS</button>
+            <button id="incident-step-next" class="primary-button" type="button">NEXT STEP →</button>
+          </div>
+          <div class="incident-actions">
+            <button id="incident-submit" class="primary-button" type="submit" hidden>EXPORT FOR REVIEW ↗</button>
+            <button class="outline-button" id="incident-reset" type="button">CLEAR ANSWERS</button>
+          </div>
+          <p id="incident-status" class="config-note" role="status" aria-live="polite"></p>
+        </form>
+      </div>
     </section>
     <section id="results-view" class="results-view" hidden aria-labelledby="results-title">
       <span class="section-number">SESSION COMPLETE / DEBRIEF</span>
