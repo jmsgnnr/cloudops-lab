@@ -19,7 +19,7 @@ Independent, browser-only AWS practice and cloud engineering scenario tool. Thes
 
 ## Field investigation pilots (local, free)
 
-Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. The guided experience is **Brief → Inspect → Simulate → Report**. The primary simulation is now a *playable virtual system*: change IAM boundary controls, NAT routes or future DNS logging, run a modeled system test and see the result. Guided response examples and the five-part facilitator report remain optional. These are local educational models, not real AWS control-plane changes. Learners can revisit stages without losing drafted answers. Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; unfinished navigation now triggers the browser's native unsaved-changes warning where supported, but a reload can still discard unfinished work if that warning is suppressed or bypassed. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
+Three additional **interactive synthetic incident exercises** are separate from the 216 MCQs: IAM permission boundaries, NAT subnet routing and DNS Resolver telemetry gaps. The main lab flow is now **The problem → Fix & test → Optional notes**. Start in a *playable virtual system*: change IAM boundary settings, NAT routes or future DNS logging, run a simulated system test and see the result. **No diagnostic gate or repetitive evidence sidebar.** Three optional plain-English clues reveal one explanation at a time, with original AWS-style logs available only under an explicit technical disclosure. The five-part facilitator report remains optional. These are local educational models, not real AWS control-plane changes. Learners can revisit stages without losing drafted answers. Reports export to JSON for an optional human facilitator. **There is no automatic grading or online submission.** Answers stay only in the active tab until explicitly exported; unfinished written notes trigger the browser's native unsaved-changes warning where supported. Playing with simulator controls alone does not nag the learner when exiting; a reload can discard unfinished notes if the warning is bypassed. No user AWS account, live infrastructure, hosted lab or real workplace log is required.
 
 The learner scenario specification is `docs/pilot-scenarios-learner.md`. The facilitator grading key is **intentionally outside the repository**, not in the publicly served JavaScript. Review the scenarios with an AWS subject-matter expert and pilot learners before suggesting reliable outcomes. The UI and new static cases must not be mistaken for protected premium content.
 
@@ -57,7 +57,7 @@ node --check engine.mjs
 node --check data/advanced-challenges.mjs
 ```
 
-The challenge set has assertions for track counts, domain coverage, stable IDs, explanations, multi-select ratio and quiz-engine integration. New `tests/incident-actions.test.mjs` validates the public synthetic action set and unchanged ungraded export schema. Optional Playwright scripts `qa/mission-browser-qa.mjs` and `qa/codex-p2-browser-qa.mjs` cover guided lab actions and the earlier keyboard/quiz fixes at desktop and mobile sizes. Automated tests alone do not prove that each AWS technical claim is accurate. Conduct independent technical review and desktop/mobile browser verification before releasing.
+The challenge set has assertions for track counts, domain coverage, stable IDs, explanations, multi-select ratio and quiz-engine integration. New `tests/incident-actions.test.mjs`, `tests/playable-sandboxes.test.mjs` and `tests/mission-clues.test.mjs` validate the public synthetic action set, new learner-first clues and unchanged ungraded export schema. Playwright scripts `qa/mission-browser-qa.mjs` and `qa/codex-p2-browser-qa.mjs` cover the hands-on virtual controls, optional clues, duplicate-status regression, exports and earlier keyboard/quiz fixes at desktop and mobile sizes. Automated tests alone do not prove that each AWS technical claim is accurate. Conduct independent technical review and desktop/mobile browser verification before releasing.
 
 ## Provenance and limitations
 
@@ -75,7 +75,7 @@ The challenge set has assertions for track counts, domain coverage, stable IDs, 
 
 - `index.html` - accessible UI skeleton and planned pricing
 - `app.mjs` - browser session and progress flow
-- `styles.css`, `focused-workspace.css`, `mission-workspace.css` - original engineering-console theme with focused lab phases
+- `styles.css`, `focused-workspace.css`, `mission-workspace.css`, `playable-workspace.css`, `simple-missions.css` - original engineering-console theme, simplified lab layout
 - `engine.mjs` - selection, scoring and progress functions
 - `data/` - question banks, guides and metadata
 - `tests/` - dependency-free Node unit and bank tests

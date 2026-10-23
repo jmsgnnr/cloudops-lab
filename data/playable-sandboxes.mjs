@@ -5,32 +5,32 @@
 export const SANDBOX_SCENARIOS = Object.freeze({
   "iam-boundary-v1": {
     title: "Repair the effective permission",
-    task: "The job can request GetObject, but its boundary does not permit it. Change the model and test the read.",
+    task: "The job can't download its file. Try changing permissions, then run the test.",
     nodes: ["Reporting role", "Identity policy", "Permissions boundary", "S3 object"],
     switches: [
-      { id:"identity", label:"Identity policy allows GetObject", initial:true, help:"The role already has an identity-level Allow." },
-      { id:"boundary", label:"Boundary allows scoped GetObject", initial:false, help:"Permit only the required object read in this synthetic boundary." },
-      { id:"broad", label:"Remove guardrails for all actions", initial:false, help:"A shortcut with unacceptable scope, not a production recommendation." }
+      { id:"identity", label:"The role can read the file", initial:true, help:"The role already has an identity-level Allow." },
+      { id:"boundary", label:"The boundary permits this file read", initial:false, help:"Permit only the required object read in this synthetic boundary." },
+      { id:"broad", label:"Remove permission safeguards (unsafe)", initial:false, help:"A shortcut with unacceptable scope, not a production recommendation." }
     ]
   },
   "private-nat-v1": {
     title: "Restore outbound HTTPS",
-    task: "A private workload can resolve DNS but can't reach TCP 443. Repair the path, then send a test request.",
+    task: "The app can't connect to the internet. Repair its route, then test HTTPS.",
     nodes: ["Private instance", "NAT gateway", "Internet gateway", "HTTPS endpoint"],
     switches: [
-      { id:"appRoute", label:"Private subnet routes to NAT", initial:true, help:"The application route is already present." },
-      { id:"natRoute", label:"NAT subnet default route goes to IGW", initial:false, help:"This is the missing egress path in the supplied model." },
-      { id:"egress", label:"Security group permits HTTPS egress", initial:true, help:"Existing rule already allows TCP 443." }
+      { id:"appRoute", label:"App traffic goes to NAT", initial:true, help:"The application route is already present." },
+      { id:"natRoute", label:"NAT traffic goes to internet gateway", initial:false, help:"This is the missing egress path in the supplied model." },
+      { id:"egress", label:"Allow outbound HTTPS", initial:true, help:"Existing rule already allows TCP 443." }
     ]
   },
   "resolver-blindspot-v1": {
     title: "Build a defensible investigation",
-    task: "Historic DNS telemetry is missing. Configure future visibility without claiming it restores the past.",
+    task: "You can't recover missing DNS history. Set up better future visibility.",
     nodes: ["Workload", "VPC resolver", "Query logs", "Host attribution"],
     switches: [
-      { id:"resolverLogs", label:"Enable future Resolver query logging", initial:false, help:"Capture supported future DNS queries, not historical ones." },
-      { id:"hostEvidence", label:"Enable future host/process telemetry", initial:false, help:"Collect process-level evidence with approved endpoint tooling." },
-      { id:"claimHistory", label:"Claim missing historical DNS is recovered", initial:false, help:"This is not possible. Avoid unsupported retrospective conclusions." }
+      { id:"resolverLogs", label:"Record future DNS queries", initial:false, help:"Capture supported future DNS queries, not historical ones." },
+      { id:"hostEvidence", label:"Record the process making queries", initial:false, help:"Collect process-level evidence with approved endpoint tooling." },
+      { id:"claimHistory", label:"Claim old missing records are recovered (incorrect)", initial:false, help:"This is not possible. Avoid unsupported retrospective conclusions." }
     ]
   }
 });

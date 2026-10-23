@@ -1,7 +1,6 @@
 /**
- * Optional browser-level regression for guided synthetic labs.
- * Usage: CLOUDOPS_PLAYWRIGHT_MODULE=<installed playwright/index.mjs> node qa/mission-browser-qa.mjs
- * Preview defaults to http://127.0.0.1:8768 and never touches real AWS or payment APIs.
+ * Field Labs v3 browser QA. Optional Playwright dependency loaded from
+ * CLOUDOPS_PLAYWRIGHT_MODULE. All tests use local static content; never AWS.
  */
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
@@ -9,112 +8,139 @@ import { pathToFileURL } from "node:url";
 const playwright = process.env.CLOUDOPS_PLAYWRIGHT_MODULE
   ? await import(pathToFileURL(process.env.CLOUDOPS_PLAYWRIGHT_MODULE).href)
   : await import("playwright");
-const base = process.env.CLOUDOPS_PREVIEW_URL || "http://127.0.0.1:8768";
+const base = process.env.CLOUDOPS_PREVIEW_URL || "http://127.0.0.1:8770";
 const browser = await playwright.chromium.launch({
-  channel: process.env.CLOUDOPS_CHROME_CHANNEL || "chrome",
-  headless: true
+  channel:process.env.CLOUDOPS_CHROME_CHANNEL || "chrome",
+  headless:true
 });
-const errors = [], offOrigin = [];
-const monitored = page => {
+const errors = [];
+const external = [];
+const collect = page => {
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", req => {
-    if (!req.url().startsWith(base) && !req.url().startsWith("data:")) offOrigin.push(req.url());
+    if (!req.url().startsWith(base) && !req.url().startsWith("data:") && !req.url().startsWith("blob:")) {
+      external.push(req.url());
+    }
   });
 };
-const status = (page) => page.evaluate(() => ({
-  phase: [...document.querySelectorAll("[data-mission-step]")].find(n => n.getAttribute("aria-current") === "step")?.dataset.missionStep,
-  focusId: document.activeElement?.id,
-  overflow: document.documentElement.scrollWidth > innerWidth + 1
-}));
+const overflow = page => page.evaluate(() =>
+  document.documentElement.scrollWidth > innerWidth + 1
+);
+const phase = page => page.locator(".mission-steps [aria-current='step']").getAttribute("data-mission-step");
+
+async function prepare(page, i) {
+  await page.goto(base,{waitUntil:"networkidle"});
+  await page.locator("#tab-labs").click();
+  assert.equal(await page.locator("#incident-catalog button").count(),3);
+  await page.locator("#incident-catalog button").nth(i).click();
+  assert.equal(await phase(page),"brief");
+  assert.equal(await page.locator("#mission-headline").innerText()!=="",true);
+  assert.equal(await page.locator("#mission-objective").innerText()!=="",true);
+  assert.equal(await page.locator("#mission-workbench").isVisible(),false);
+  assert.equal(await page.locator("#mission-start").isVisible(),true);
+  await page.locator("#mission-start").click();
+  assert.equal(await phase(page),"workbench");
+  assert.equal(await page.locator("#playable-controls input").count(),3);
+  assert.equal(await page.locator("#playable-test").isEnabled(),true,
+    "no diagnostic gate before hands-on simulation");
+  assert.equal(await page.locator("#mission-clues").evaluate(el=>el.open),false,
+    "clue drawer collapsed");
+  assert.equal(await page.locator("#incident-evidence").isVisible(),false,
+    "raw artifacts are optional");
+}
 
 try {
-  const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 }, acceptDownloads:true });
-  monitored(desktop);
-  await desktop.goto(base, { waitUntil:"networkidle" });
-  await desktop.locator("#tab-labs").click();
-  assert.equal(await desktop.locator("#incident-catalog button").count(), 3);
-  for (let i=0; i<3; i++) {
-    await desktop.locator("#incident-catalog button").nth(i).click();
-    assert.equal((await status(desktop)).phase, "brief");
-    assert.equal(await desktop.locator("#mission-inspect").isVisible(), false);
-    assert.equal((await status(desktop)).focusId, "mission-start");
-    assert.equal(await desktop.locator("#mission-objective").innerText() !== "", true);
-    await desktop.locator("#mission-start").click();
-    assert.equal((await status(desktop)).phase, "inspect");
-    assert.equal(await desktop.locator("#mission-to-decide").isDisabled(), true);
-    assert.equal(await desktop.locator("#incident-probes button").count(),3);
-    await desktop.locator("#incident-probes button").nth(0).click();
-    assert.equal(await desktop.locator("#mission-evidence-items li").count(),1);
-    await desktop.locator("#incident-probes button").nth(1).click();
-    assert.equal(await desktop.locator("#mission-evidence-items li").count(),2);
-    assert.equal(await desktop.locator("#mission-to-decide").isEnabled(),true);
-    await desktop.locator("#mission-hint-text").evaluate(n=>n.closest("details").open=true);
-    assert.equal(await desktop.locator("#mission-hint-text").innerText() !== "",true);
+  const desktop=await browser.newPage({
+    viewport:{width:1440,height:900},
+    acceptDownloads:true
+  });
+  collect(desktop);
+  for(let i=0;i<3;i++){
+    await prepare(desktop,i);
+    assert.equal(await overflow(desktop),false);
+    if(i===0 && process.env.CLOUDOPS_QA_SCREENSHOT_DIR){
+      await desktop.screenshot({
+        path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/workbench-before.png",
+        fullPage:true
+      });
+    }
+    await desktop.locator("#playable-test").click();
+    assert.equal(await desktop.locator("#playable-result").isVisible(),true);
+    assert.equal(await desktop.locator("#mission-to-report").isEnabled(),true);
+    const baseline = await desktop.locator("#playable-verdict").innerText();
+    assert.equal(baseline.length>5,true);
+
+    await desktop.locator("#playable-controls input").nth(1).check();
+    if(i===2) await desktop.locator("#playable-controls input").nth(0).check();
+    assert.equal(await desktop.locator("#playable-result").isVisible(),false,
+      "a changed setting invalidates old result");
+    assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true,
+      "cannot debrief as if stale test were current");
+    await desktop.locator("#playable-test").click();
+    const healthy = await desktop.locator("#playable-verdict").innerText();
+    assert.notEqual(healthy,baseline);
+    assert.equal(await desktop.locator("#playable-badge").evaluate(n=>n.classList.contains("is-healthy")),true);
 
     if(i===0 && process.env.CLOUDOPS_QA_SCREENSHOT_DIR){
-      await desktop.screenshot({path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/desktop-inspect.png",fullPage:true});
+      await desktop.screenshot({
+        path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/workbench-restored.png",
+        fullPage:true
+      });
     }
-    await desktop.locator("#mission-to-decide").click();
-    assert.equal((await status(desktop)).phase, "decide");
-    assert.equal(await desktop.locator("#playable-controls input").count(),3);
-    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
-    await desktop.locator("#playable-test").click();
-    assert.equal(await desktop.locator("#playable-result").isVisible(),true);
-    assert.equal(await desktop.locator("#playable-badge").innerText() !== "",true);
-    await desktop.locator("#playable-controls input").nth(1).check();
-    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
-    assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true,"changed virtual settings invalidate last test");
-    await desktop.locator("#playable-test").click();
-    assert.equal(await desktop.locator("#playable-result").isVisible(),true);
-    await desktop.locator("#playable-reset").click();
-    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
-    await desktop.locator(".playable-guide summary").click();
-    assert.equal(await desktop.locator("#mission-options button").count(),3);
-    assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true);
-    await desktop.locator("#mission-options button").first().click();
-    assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true);
-    await desktop.locator("#mission-run").click();
-    assert.equal(await desktop.locator("#mission-outcome").isVisible(),true);
-    const initialOutcome = await desktop.locator("#mission-result").innerText();
-    assert.equal(initialOutcome.length>4,true);
-    await desktop.locator("#mission-options button").last().click();
-    assert.equal(await desktop.locator("#mission-outcome").isVisible(),false);
-    await desktop.locator("#mission-run").click();
-    assert.equal(await desktop.locator("#mission-outcome").isVisible(),true);
-    assert.notEqual(await desktop.locator("#mission-result").innerText(), initialOutcome, "trying another action must change the modeled result");
-    assert.equal(await desktop.locator("#mission-to-report").isEnabled(),true);
+
+    // Technical details are optional, and one explanation appears at a time.
+    await desktop.locator("#mission-clues summary").first().click();
+    assert.equal(await desktop.locator("#clue-buttons button").count(),3);
+    assert.equal(await desktop.locator("#clue-output").isVisible(),false);
+    await desktop.locator("#clue-buttons button").first().click();
+    assert.equal(await desktop.locator("#clue-output").isVisible(),true);
+    assert.equal(await desktop.locator("#clue-raw").evaluate(n=>n.open),false);
+    assert.equal((await desktop.locator("#clue-finding").innerText()).length>20,true);
+    await desktop.locator("#clue-raw summary").click();
+    assert.equal(await desktop.locator("#clue-text").isVisible(),true);
+    assert.equal((await desktop.locator("#clue-text").innerText()).length>25,true);
+    await desktop.locator("#clue-buttons button").nth(1).click();
+    assert.equal(await desktop.locator("#clue-raw").evaluate(n=>n.open),false);
+    assert.match(await desktop.locator("#clue-progress").innerText(),/2 \/ 3/);
+    assert.equal(await desktop.locator("#incident-evidence").isVisible(),false);
     if(i===0 && process.env.CLOUDOPS_QA_SCREENSHOT_DIR){
-      await desktop.screenshot({path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/desktop-simulate.png",fullPage:true});
+      await desktop.screenshot({
+        path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/workbench-clues.png",
+        fullPage:true
+      });
     }
+    await desktop.locator("#playable-reset").click();
+    assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true);
+    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
+    await desktop.locator("#playable-test").click();
     await desktop.locator("#mission-to-report").click();
-    assert.equal((await status(desktop)).phase,"report");
+    assert.equal(await phase(desktop),"report");
     assert.equal(await desktop.locator("#incident-fields textarea").count(),5);
     assert.equal(await desktop.locator("#incident-answer-diagnosis").isVisible(),true);
-    assert.equal(await desktop.locator("#incident-attach").isEnabled(),true);
     await desktop.locator("#incident-attach").click();
     assert.equal(await desktop.locator("#incident-answer-evidence").isVisible(),true);
     assert.match(await desktop.locator("#incident-answer-evidence").inputValue(),/SYNTHETIC/);
     await desktop.locator("#incident-attach").click();
-    assert.match(await desktop.locator("#incident-status").innerText(),/Already added/);
+    assert.match(await desktop.locator("#incident-status").innerText(),/Already included/);
     await desktop.locator("#mission-use-decision").click();
     assert.equal(await desktop.locator("#incident-answer-fix").isVisible(),true);
-    assert.match(await desktop.locator("#incident-answer-fix").inputValue(),/SIMULATED ACTION/);
+    assert.match(await desktop.locator("#incident-answer-fix").inputValue(),/VIRTUAL SYSTEM TEST/);
+
     await desktop.locator("#mission-back-decide").click();
-    assert.equal((await status(desktop)).phase,"decide");
+    assert.equal(await phase(desktop),"workbench");
     await desktop.locator("#mission-to-report").click();
-    assert.equal((await status(desktop)).phase,"report");
-    // Walk backward, then forward through every required report field.
-    await desktop.locator("#incident-step-prev").click(); // evidence
-    await desktop.locator("#incident-step-prev").click(); // diagnosis
-    for(const [index,field] of ["diagnosis","evidence","fix","verify","rollback"].entries()){
-      const input=desktop.locator("#incident-answer-"+field);
-      assert.equal(await input.isVisible(),true,field);
-      await input.fill((await input.inputValue())+" I would verify this with an authorized change record and preserve the case evidence.");
-      if(index<4)await desktop.locator("#incident-step-next").click();
+    assert.equal(await phase(desktop),"report");
+    await desktop.locator("#incident-step-prev").click();
+    await desktop.locator("#incident-step-prev").click();
+    for(const [n,key] of ["diagnosis","evidence","fix","verify","rollback"].entries()){
+      const field=desktop.locator("#incident-answer-"+key);
+      assert.equal(await field.isVisible(),true,key);
+      await field.fill((await field.inputValue())+" I will verify the modeled result and document uncertainty.");
+      if(n<4) await desktop.locator("#incident-step-next").click();
     }
-    const wait = desktop.waitForEvent("download");
+    const waiting=desktop.waitForEvent("download");
     await desktop.locator("#incident-submit").click();
-    const download=await wait;
+    const download=await waiting;
     assert.match(download.suggestedFilename(),/cloudlabs-.*-response\.json/);
     assert.match(await desktop.locator("#incident-status").innerText(),/Exported to your device/);
     await desktop.locator("#incident-exit").click();
@@ -123,36 +149,62 @@ try {
 
   for(const width of [390,320]){
     const mobile=await browser.newPage({viewport:{width,height:844}});
-    monitored(mobile);
-    await mobile.goto(base,{waitUntil:"networkidle"});
-    await mobile.locator("#tab-labs").click();
-    await mobile.locator("#incident-catalog button").first().click();
-    assert.equal((await status(mobile)).overflow,false);
-    await mobile.locator("#mission-start").click();
-    await mobile.locator("#incident-probes button").first().click();
-    await mobile.locator("#incident-probes button").last().click();
-    assert.equal((await status(mobile)).overflow,false);
-    await mobile.locator("#mission-to-decide").click();
+    collect(mobile);
+    await prepare(mobile,0);
+    assert.equal(await overflow(mobile),false,`initial width ${width}`);
+    await mobile.locator("#playable-test").click();
+    assert.equal(await overflow(mobile),false,`test width ${width}`);
     await mobile.locator("#playable-controls input").nth(1).check();
     await mobile.locator("#playable-test").click();
-    assert.equal((await status(mobile)).overflow,false);
-    if(width===390&&process.env.CLOUDOPS_QA_SCREENSHOT_DIR){
-      await mobile.screenshot({path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/mobile-simulate.png",fullPage:true});
+    assert.equal(await overflow(mobile),false,`success width ${width}`);
+    await mobile.locator("#mission-clues summary").first().click();
+    await mobile.locator("#clue-buttons button").last().click();
+    assert.equal(await overflow(mobile),false,`clue width ${width}`);
+    if(width===390 && process.env.CLOUDOPS_QA_SCREENSHOT_DIR){
+      await mobile.screenshot({
+        path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/mobile-workbench.png",
+        fullPage:true
+      });
     }
     await mobile.locator("#mission-to-report").click();
-    assert.equal((await status(mobile)).overflow,false);
-    assert.equal((await status(mobile)).phase,"report");
-    assert.equal((await status(mobile)).focusId,"incident-answer-diagnosis");
-    mobile.once("dialog",d=>d.accept());
+    assert.equal(await phase(mobile),"report");
+    assert.equal(await mobile.locator("#incident-answer-diagnosis").isVisible(),true);
+    assert.equal(await overflow(mobile),false,`report width ${width}`);
     await mobile.locator("#incident-exit").click();
     assert.equal(await mobile.locator("#lab-home").isVisible(),true);
     await mobile.close();
   }
-  assert.deepEqual(errors,[],"no JavaScript exceptions");
-  assert.deepEqual(offOrigin,[],"no off-origin requests");
-  console.log(JSON.stringify({status:"PASS",cases:3,diagnostics:6,
-    decisions:"two simulations per case",report:"5 fields, export, retry, no duplication",
-    responsive:[1440,390,320],errors:errors.length,offOrigin:offOrigin.length},null,2));
+  // Codex P2 regression: two different causes can yield the same failure
+  // status; optional notes must preserve both experiments.
+  const retry=await browser.newPage({viewport:{width:1440,height:900}});
+  collect(retry);
+  await prepare(retry,1);
+  await retry.locator("#playable-test").click();
+  assert.equal(await retry.locator("#playable-verdict").innerText(),"HTTPS TIMEOUT");
+  await retry.locator("#mission-to-report").click();
+  await retry.locator("#mission-use-decision").click();
+  const firstNote=await retry.locator("#incident-answer-fix").inputValue();
+  assert.match(firstNote,/Traffic reaches the NAT gateway/);
+  await retry.locator("#mission-back-decide").click();
+  await retry.locator("#playable-controls input").first().uncheck();
+  await retry.locator("#playable-test").click();
+  assert.equal(await retry.locator("#playable-verdict").innerText(),"HTTPS TIMEOUT");
+  await retry.locator("#mission-to-report").click();
+  await retry.locator("#mission-use-decision").click();
+  const both=await retry.locator("#incident-answer-fix").inputValue();
+  assert.match(both,/Traffic reaches the NAT gateway/);
+  assert.match(both,/private workload no longer routes/);
+  assert.equal((both.match(/\[VIRTUAL SYSTEM TEST: HTTPS TIMEOUT\]/g)||[]).length,2);
+  await retry.close();
+
+  assert.deepEqual(errors,[],"no page JS exceptions");
+  assert.deepEqual(external,[],"no external network requests");
+  console.log(JSON.stringify({
+    status:"PASS",cases:3,simulator:"direct access, no inspection gate",
+    clues:"optional one-at-a-time with raw evidence collapsed",
+    tests:"change invalidation, retry, reset, optional report export",
+    responsive:[1440,390,320],errors:errors.length,offOrigin:external.length
+  },null,2));
 } finally {
   await browser.close();
 }
