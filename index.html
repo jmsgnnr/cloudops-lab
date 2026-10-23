@@ -8,6 +8,8 @@
   <title>CloudOps Lab | Cloud Engineering Practice</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./focused-workspace.css">
+  <link rel="stylesheet" href="./mission-workspace.css">
+  <link rel="stylesheet" href="./playable-workspace.css">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script type="module" src="./app.mjs"></script>
 </head>
@@ -167,15 +169,29 @@
           <p id="incident-objective" class="incident-objective"></p>
         </details>
       </div>
-      <div class="incident-workspace">
-        <section aria-labelledby="incident-evidence-title">
+      <nav class="mission-steps" aria-label="Investigation progress">
+        <span data-mission-step="brief" aria-current="step">01 / Brief</span>
+        <span data-mission-step="inspect">02 / Inspect</span>
+        <span data-mission-step="decide">03 / Simulate</span>
+        <span data-mission-step="report">04 / Report</span>
+      </nav>
+      <section id="mission-brief" class="mission-stage mission-brief">
+        <span class="section-number">MISSION START / SIMULATED ENVIRONMENT</span>
+        <h3>You're the engineer on call.</h3>
+        <p id="mission-objective" class="mission-objective"></p>
+        <p class="mission-disclaimer">A contained, fictional AWS scenario. Nothing connects to real cloud resources, changes policies or incurs cloud charges.</p>
+        <button id="mission-start" class="primary-button" type="button">START INVESTIGATION ↗</button>
+      </section>
+      <section id="mission-inspect" class="mission-stage" hidden>
+      <div class="incident-workspace mission-investigation-grid">
+        <section aria-labelledby="incident-console-title">
           <div class="incident-console" aria-labelledby="incident-console-title">
             <span class="section-number">INVESTIGATION / LOCAL SIMULATION</span>
             <h3 id="incident-console-title">Run a diagnostic</h3>
             <p class="incident-small">Choose a synthetic check and inspect the result. No AWS account, API calls, or automatic grading.</p>
             <div id="incident-probes" class="incident-probe-actions" role="group" aria-label="Simulated diagnostic checks"></div>
             <div class="incident-terminal" aria-live="polite" aria-atomic="true"><span id="incident-probe-label">AWAITING DIAGNOSTIC</span><pre id="incident-probe-output">Select a check to inspect an observation.</pre><p id="incident-probe-prompt"></p></div>
-            <div class="incident-console-footer"><span id="incident-probe-count">0 CHECKS RUN</span><button id="incident-attach" class="outline-button" type="button" disabled>ATTACH TO REPORT EVIDENCE ↓</button></div>
+            <div class="incident-console-footer"><span id="incident-probe-count">0 CHECKS RUN</span><span class="mission-instruction">Run at least two checks to proceed.</span></div>
           </div>
           <details class="incident-evidence-drawer">
             <summary id="incident-evidence-title">CASE FILE / ORIGINAL ARTIFACTS <span>EXPAND ↓</span></summary>
@@ -183,9 +199,55 @@
             <div id="incident-evidence" class="incident-evidence"></div>
           </details>
         </section>
+        <aside class="mission-evidence-board" aria-labelledby="mission-evidence-title">
+          <span class="section-number">YOUR INVESTIGATION LOG</span>
+          <h3 id="mission-evidence-title">Evidence collected</h3>
+          <p>Running a check automatically adds it to this case. Reopen any check to compare observations.</p>
+          <ol id="mission-evidence-items" class="mission-evidence-items"><li>No checks run yet.</li></ol>
+          <details class="mission-hint"><summary>Need a hint?</summary><p id="mission-hint-text"></p></details>
+        </aside>
+      </div>
+      <div class="mission-navigation">
+        <button id="mission-back-brief" class="outline-button" type="button">← BRIEFING</button>
+        <button id="mission-to-decide" class="primary-button" type="button" disabled>CHOOSE A RESPONSE →</button>
+      </div>
+      </section>
+      <section id="mission-decide" class="mission-stage mission-decision" hidden>
+        <span class="section-number">SANDBOX ACTIONS / NOTHING IS CHANGED</span>
+        <h3>Get the system working.</h3>
+        <p>Change the virtual controls and run a test. Every change has a consequence. Nothing touches an actual AWS account.</p>
+        <div id="playable-lab" class="playable-lab" aria-label="Interactive troubleshooting sandbox">
+          <div class="playable-topline"><div><span class="section-number">INTERACTIVE SANDBOX / FICTIONAL AWS</span><h4 id="playable-title"></h4><p id="playable-task"></p></div><span id="playable-badge" class="playable-badge">NOT TESTED</span></div>
+          <div id="playable-topology" class="playable-topology" aria-label="Simulated system components"></div>
+          <div id="playable-controls" class="playable-controls" role="group" aria-label="Virtual system settings"></div>
+          <div class="playable-toolbar"><button id="playable-test" type="button" class="primary-button">RUN SYSTEM TEST ↗</button><button id="playable-reset" type="button" class="outline-button">RESET SYSTEM</button><span id="playable-attempts">0 TESTS</span></div>
+          <div id="playable-result" class="playable-result" aria-live="polite" hidden><strong id="playable-verdict"></strong><p id="playable-explanation"></p><code id="playable-evidence"></code></div>
+        </div>
+        <details class="playable-guide"><summary>STUCK? SEE GUIDED RESPONSE EXAMPLES ↓</summary><p>These are explanations, not actions on the virtual system. Try the controls above first.</p>
+        <div id="mission-options" class="mission-options" role="group" aria-label="Possible response actions"></div>
+        <button id="mission-run" class="primary-button" type="button" disabled>PREVIEW CHOSEN RESPONSE ↗</button>
+        <div id="mission-outcome" class="mission-outcome" hidden role="status" aria-live="polite">
+          <span class="section-number">SIMULATION RESULT / NOT A LIVE CHANGE</span>
+          <h4 id="mission-result"></h4>
+          <p id="mission-consequence"></p>
+          <p><strong>NEXT:</strong> <span id="mission-next"></span></p>
+          <p class="mission-caution" id="mission-caution"></p>
+        </div>
+        </details>
+        <div class="mission-navigation">
+          <button id="mission-back-inspect" class="outline-button" type="button">← INSPECT MORE</button>
+          <button id="mission-to-report" class="primary-button" type="button" disabled>OPTIONAL DEBRIEF →</button>
+        </div>
+      </section>
+      <section id="mission-report" class="mission-stage mission-report" hidden>
+        <div class="mission-navigation mission-report-top">
+          <span>Describe your diagnosis, evidence and rollback. No automatic grading.</span>
+          <button id="mission-back-decide" class="outline-button" type="button">← REVISIT ACTION</button>
+        </div>
         <form id="incident-response" class="incident-response" novalidate>
           <h3>Your incident report</h3>
-          <p class="incident-small">Five short steps. Your answers stay in this tab until you export them.</p>
+          <p class="incident-small">Five guided steps. Your words stay in this tab until you export; you can revisit the simulation.</p>
+          <div class="mission-report-evidence"><span id="mission-report-evidence-count">0 OBSERVATIONS SAVED</span><button id="incident-attach" class="outline-button" type="button" disabled>ADD OBSERVATIONS</button><button id="mission-use-decision" class="outline-button" type="button" disabled>ADD SIMULATED ACTION</button></div>
           <div id="incident-report-progress" class="incident-report-progress" aria-live="polite">STEP 1 OF 5</div>
           <div id="incident-fields"></div>
           <div class="incident-step-controls">
@@ -198,7 +260,7 @@
           </div>
           <p id="incident-status" class="config-note" role="status" aria-live="polite"></p>
         </form>
-      </div>
+      </section>
     </section>
     <section id="results-view" class="results-view" hidden aria-labelledby="results-title">
       <span class="section-number">SESSION COMPLETE / DEBRIEF</span>

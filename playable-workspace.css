@@ -1,0 +1,37 @@
+
+/* Playable troubleshooting panel: visible changes, visible consequence. */
+.playable-lab { border:1px solid var(--border-strong); background:#0e1512; padding:1rem; margin:1rem 0; }
+.playable-topline { display:flex; flex-wrap:wrap; justify-content:space-between; gap:1rem; }
+.playable-topline h4 { color:var(--paper); font-size:1.25rem; margin:.4rem 0; }
+.playable-topline p { max-width:63ch; color:var(--muted); font-size:.84rem; }
+.playable-badge { font: .65rem/1.3 var(--mono); color:var(--muted); border:1px solid var(--border-strong); padding:.5rem .65rem; align-self:start; }
+.playable-badge.is-healthy { color:var(--acid); border-color:var(--acid); }
+.playable-badge.is-risk { color:var(--pink); border-color:var(--pink); }
+.playable-topology { display:flex; align-items:center; justify-content:space-between; gap:.3rem; margin:1rem 0; padding:.65rem; border:1px solid var(--border); overflow-x:auto; }
+.playable-node { flex:1 0 0; min-width:75px; text-align:center; border:1px solid var(--border-strong); background:var(--ink-raised); padding:.8rem .4rem; color:var(--paper); font:.69rem/1.4 var(--mono); }
+.playable-node.is-reachable { border-color:var(--acid); color:var(--acid); }
+.playable-connector { color:var(--acid); flex:0 0 auto; }
+.playable-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6rem; }
+.playable-switch { display:flex; align-items:flex-start; gap:.65rem; border:1px solid var(--border-strong); padding:.9rem .75rem; background:var(--ink-raised); cursor:pointer; min-width:0; }
+.playable-switch:has(input:checked) { border-color:#71874c; background:#1b251b; }
+.playable-switch input { width:1.2rem; height:1.2rem; margin-top:.12rem; accent-color:var(--acid); flex:none; }
+.playable-switch-copy { display:grid; gap:.45rem; }
+.playable-switch strong { font-size:.78rem; line-height:1.35; color:var(--paper); }
+.playable-switch small { color:var(--muted); font-size:.71rem; line-height:1.35; }
+.playable-toolbar { display:flex; gap:.7rem; align-items:center; flex-wrap:wrap; margin-top:1rem; }
+.playable-toolbar span { color:var(--muted); font:.67rem var(--mono); margin-left:auto; }
+.playable-result { margin-top:1rem; padding:1rem; border-left:3px solid var(--acid); background:#1b241b; }
+.playable-result strong { color:var(--acid); }
+.playable-result p { font-size:.82rem; color:var(--paper); margin:.55rem 0; }
+.playable-result code { display:block; white-space:normal; color:var(--muted); font-size:.72rem; }
+.playable-guide { border-top:1px dashed var(--border-strong); padding-top:1rem; margin-top:1rem; }
+.playable-guide summary { cursor:pointer; color:var(--muted); font:.7rem var(--mono); }
+.playable-guide>p { color:var(--muted); font-size:.75rem; }
+.playable-guide .mission-options { margin-top:.8rem; }
+@media(max-width:780px){
+  .playable-controls { grid-template-columns:1fr; }
+  .playable-topology { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.35rem; overflow-x:visible; }
+  .playable-connector { display:none; }
+  .playable-node { min-width:0; font-size:.66rem; padding:.85rem .3rem; }
+  .playable-lab { padding:.7rem; }
+}
