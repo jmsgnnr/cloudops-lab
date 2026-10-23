@@ -56,6 +56,19 @@ try {
     }
     await desktop.locator("#mission-to-decide").click();
     assert.equal((await status(desktop)).phase, "decide");
+    assert.equal(await desktop.locator("#playable-controls input").count(),3);
+    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
+    await desktop.locator("#playable-test").click();
+    assert.equal(await desktop.locator("#playable-result").isVisible(),true);
+    assert.equal(await desktop.locator("#playable-badge").innerText() !== "",true);
+    await desktop.locator("#playable-controls input").nth(1).check();
+    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
+    assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true,"changed virtual settings invalidate last test");
+    await desktop.locator("#playable-test").click();
+    assert.equal(await desktop.locator("#playable-result").isVisible(),true);
+    await desktop.locator("#playable-reset").click();
+    assert.equal(await desktop.locator("#playable-result").isVisible(),false);
+    await desktop.locator(".playable-guide summary").click();
     assert.equal(await desktop.locator("#mission-options button").count(),3);
     assert.equal(await desktop.locator("#mission-to-report").isDisabled(),true);
     await desktop.locator("#mission-options button").first().click();
@@ -120,8 +133,8 @@ try {
     await mobile.locator("#incident-probes button").last().click();
     assert.equal((await status(mobile)).overflow,false);
     await mobile.locator("#mission-to-decide").click();
-    await mobile.locator("#mission-options button").nth(1).click();
-    await mobile.locator("#mission-run").click();
+    await mobile.locator("#playable-controls input").nth(1).check();
+    await mobile.locator("#playable-test").click();
     assert.equal((await status(mobile)).overflow,false);
     if(width===390&&process.env.CLOUDOPS_QA_SCREENSHOT_DIR){
       await mobile.screenshot({path:process.env.CLOUDOPS_QA_SCREENSHOT_DIR+"/mobile-simulate.png",fullPage:true});

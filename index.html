@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./focused-workspace.css">
   <link rel="stylesheet" href="./mission-workspace.css">
+  <link rel="stylesheet" href="./playable-workspace.css">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script type="module" src="./app.mjs"></script>
 </head>
@@ -213,10 +214,18 @@
       </section>
       <section id="mission-decide" class="mission-stage mission-decision" hidden>
         <span class="section-number">SANDBOX ACTIONS / NOTHING IS CHANGED</span>
-        <h3>Choose your next move.</h3>
-        <p>Test a response based on what you observed. The simulation shows tradeoffs, not a score. You can retry another action.</p>
+        <h3>Get the system working.</h3>
+        <p>Change the virtual controls and run a test. Every change has a consequence. Nothing touches an actual AWS account.</p>
+        <div id="playable-lab" class="playable-lab" aria-label="Interactive troubleshooting sandbox">
+          <div class="playable-topline"><div><span class="section-number">INTERACTIVE SANDBOX / FICTIONAL AWS</span><h4 id="playable-title"></h4><p id="playable-task"></p></div><span id="playable-badge" class="playable-badge">NOT TESTED</span></div>
+          <div id="playable-topology" class="playable-topology" aria-label="Simulated system components"></div>
+          <div id="playable-controls" class="playable-controls" role="group" aria-label="Virtual system settings"></div>
+          <div class="playable-toolbar"><button id="playable-test" type="button" class="primary-button">RUN SYSTEM TEST ↗</button><button id="playable-reset" type="button" class="outline-button">RESET SYSTEM</button><span id="playable-attempts">0 TESTS</span></div>
+          <div id="playable-result" class="playable-result" aria-live="polite" hidden><strong id="playable-verdict"></strong><p id="playable-explanation"></p><code id="playable-evidence"></code></div>
+        </div>
+        <details class="playable-guide"><summary>STUCK? SEE GUIDED RESPONSE EXAMPLES ↓</summary><p>These are explanations, not actions on the virtual system. Try the controls above first.</p>
         <div id="mission-options" class="mission-options" role="group" aria-label="Possible response actions"></div>
-        <button id="mission-run" class="primary-button" type="button" disabled>SIMULATE CHOSEN ACTION ↗</button>
+        <button id="mission-run" class="primary-button" type="button" disabled>PREVIEW CHOSEN RESPONSE ↗</button>
         <div id="mission-outcome" class="mission-outcome" hidden role="status" aria-live="polite">
           <span class="section-number">SIMULATION RESULT / NOT A LIVE CHANGE</span>
           <h4 id="mission-result"></h4>
@@ -224,9 +233,10 @@
           <p><strong>NEXT:</strong> <span id="mission-next"></span></p>
           <p class="mission-caution" id="mission-caution"></p>
         </div>
+        </details>
         <div class="mission-navigation">
           <button id="mission-back-inspect" class="outline-button" type="button">← INSPECT MORE</button>
-          <button id="mission-to-report" class="primary-button" type="button" disabled>WRITE YOUR REPORT →</button>
+          <button id="mission-to-report" class="primary-button" type="button" disabled>OPTIONAL DEBRIEF →</button>
         </div>
       </section>
       <section id="mission-report" class="mission-stage mission-report" hidden>

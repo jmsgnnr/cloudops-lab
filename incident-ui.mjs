@@ -1,6 +1,7 @@
 import { INCIDENTS, INCIDENT_PROMPTS, buildIncidentSubmission } from "./data/incident-pilots.mjs";
 import { getIncidentProbes } from "./data/incident-probes.mjs";
 import { getIncidentActions, describeIncidentAction } from "./data/incident-actions.mjs";
+import { setupPlayableLab, openPlayableLab, lastPlayableResult } from "./playable-ui.mjs";
 
 const $ = (id) => document.getElementById(id);
 const PHASES = ["brief", "inspect", "decide", "report"];
@@ -33,7 +34,7 @@ function showMissionPhase(phase, focus = true) {
   const target = ({
     brief: () => $("mission-start"),
     inspect: () => $("incident-probes").querySelector("button") ?? $("mission-to-decide"),
-    decide: () => $("mission-options").querySelector("button") ?? $("mission-run"),
+    decide: () => $("playable-controls").querySelector("input") ?? $("playable-test"),
     report: () => $("incident-fields").querySelector(".incident-field:not([hidden]) textarea") ?? $("incident-attach")
   })[phase]();
   target?.focus({ preventScroll: true });
@@ -174,6 +175,13 @@ function attachDiagnosticObservation() {
 }
 
 function attachSimulatedAction() {
+  const test = lastPlayableResult();
+  if (test) {
+    attachReportText("fix", [
+      `[VIRTUAL SYSTEM TEST: ${test.status}]\n${test.evidence}\n${test.explanation}`
+    ], "Virtual test notes copied. Explain the tradeoff and your rollback plan.");
+    return;
+  }
   const choice = describeIncidentAction(currentIncident?.id, simulatedActionId);
   if (!choice) return;
   attachReportText("fix", [
@@ -183,7 +191,7 @@ function attachSimulatedAction() {
 
 function hasUnsavedAnswers() {
   return Boolean(currentIncident && !exported &&
-    (completedChecks.size > 0 || simulatedActionId ||
+    (completedChecks.size > 0 || simulatedActionId || lastPlayableResult() ||
       [...$("incident-fields").querySelectorAll("textarea")].some(field => field.value.trim())));
 }
 
@@ -244,6 +252,8 @@ function openIncident(incident, onView) {
   document.querySelector(".mission-hint").open = false;
   renderDiagnostics(incident);
   renderActions(incident);
+  openPlayableLab(incident.id);
+  document.querySelector(".playable-guide").open = false;
 
   const locker = $("incident-evidence");
   locker.replaceChildren();
@@ -335,9 +345,17 @@ export function setupIncidentUI(onView) {
     if (completedChecks.size < 2) return;
     showMissionPhase("decide");
   });
+  setupPlayableLab((result) => {
+    simulatedActionId = null;
+    exported = false;
+    // Once the learner has actually run a virtual test, a debrief is optional.
+    // Guided-response examples still work as a fallback.
+    $("mission-to-report").disabled = !result;
+    $("mission-use-decision").disabled = !result && !simulatedActionId;
+  });
   $("mission-run").addEventListener("click", simulateAction);
   $("mission-to-report").addEventListener("click", () => {
-    if (!simulatedActionId) return;
+    if (!simulatedActionId && !lastPlayableResult()) return;
     showMissionPhase("report");
   });
   $("mission-back-decide").addEventListener("click", () => showMissionPhase("decide"));
