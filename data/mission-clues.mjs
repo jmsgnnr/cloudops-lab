@@ -7,6 +7,11 @@ export const MISSION_CLUES = Object.freeze({
     headline:"An S3 download is being denied.",
     goal:"Get the reporting job reading its file without removing security guardrails.",
     signal:"ACCESS DENIED",
+    references:Object.freeze([
+      {label:"S3 access policy evaluation",url:"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html"},
+      {label:"IAM policy evaluation",url:"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html"},
+      {label:"IAM permissions boundaries",url:"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html"}
+    ]),
     start:"Open the workbench",
     clues:Object.freeze([
       Object.freeze({probeId:"request", question:"What is failing?", finding:"The job is trying to download an S3 file, but S3 responds with AccessDenied.", meaning:"We know which request is failing. Next, check what the role is allowed to do."}),
@@ -18,6 +23,11 @@ export const MISSION_CLUES = Object.freeze({
     headline:"Your app can't reach an HTTPS service.",
     goal:"Repair the outbound network path without weakening unrelated security controls.",
     signal:"HTTPS TIMEOUT",
+    references:Object.freeze([
+      {label:"NAT gateway routing",url:"https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html"},
+      {label:"Public NAT subnet routing",url:"https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html"},
+      {label:"VPC route table troubleshooting",url:"https://docs.aws.amazon.com/vpc/latest/userguide/route-table-options.html"}
+    ]),
     start:"Open the workbench",
     clues:Object.freeze([
       Object.freeze({probeId:"application", question:"Where does the app send traffic?", finding:"The private application subnet already sends internet-bound traffic to its NAT gateway.", meaning:"That first hop looks right. Find out where the NAT gateway sends traffic next."}),
@@ -29,6 +39,11 @@ export const MISSION_CLUES = Object.freeze({
     headline:"An investigator needs DNS history you don't have.",
     goal:"Create trustworthy future visibility without claiming missing historical queries can be recovered.",
     signal:"HISTORICAL DATA MISSING",
+    references:Object.freeze([
+      {label:"Resolver query logging setup",url:"https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-query-logging-configurations-managing.html"},
+      {label:"VPC Flow Logs exclusions",url:"https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-limitations.html"},
+      {label:"Resolver query log fields and limits",url:"https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-query-logs.html"}
+    ]),
     start:"Open the workbench",
     clues:Object.freeze([
       Object.freeze({probeId:"timeline", question:"When did logging begin?", finding:"The suspected activity happened before Resolver query logging was enabled.", meaning:"New logging can't recreate events from before it was turned on."}),
