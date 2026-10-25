@@ -30,3 +30,12 @@ Cursor for bounded implementation; lead performs deterministic tests and screens
 
 ### Review handoff
 - Codex is final code **reviewer only**, not an implementation engineer. Review completed diffs after deterministic tests and real desktop/mobile browser evidence, then report reproducible findings with severity and file/line references. Do not fix, push, approve or merge from the review role. A Codex review is not @jmsgnnr's required personal PR approval.
+
+## Cursor Cloud specific instructions
+
+Local development is a static site plus Node tests. `package.json` has no start or build script, and opening `index.html` from disk blocks ES module imports.
+
+- Serve the repository root with `python3 -m http.server 3456 --bind 0.0.0.0` and open `http://127.0.0.1:3456`. On the default image, Python 3.12 serves `.mjs` as `text/javascript`.
+- Node 22 matches CI. Run `node --check app.mjs`, `node --check engine.mjs`, `node --check data/advanced-challenges.mjs`, and `node --test --test-concurrency=1 tests/*.test.mjs`. Those tests do not import `node_modules`.
+- `npm ci` installs Playwright for the optional scripts in `qa/`. Those scripts launch system Chrome (the `chrome` channel) against a preview server that is already running.
+- No secrets, login, or external services are required. Planned membership copy is not live billing. `.cursor/environment.json` is gitignored; keep Cloud Agent install and start configuration in the environment panel.
