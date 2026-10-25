@@ -218,6 +218,31 @@ h1 {
   color: var(--muted-dim);
 }
 
+.stat-link {
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s, color 0.15s;
+}
+
+.stat-link:hover {
+  color: var(--acid);
+  text-decoration-color: var(--acid);
+}
+
+.stat-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 .meta-highlight {
   color: var(--acid);
   padding: 0.2rem 0.55rem;
