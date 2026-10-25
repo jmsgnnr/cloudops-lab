@@ -11,7 +11,8 @@ export const SANDBOX_SCENARIOS = Object.freeze({
       { id:"identity", label:"The role can read the file", initial:true, help:"The role already has an identity-level Allow." },
       { id:"boundary", label:"The boundary permits this file read", initial:false, help:"Permit only the required object read in this synthetic boundary." },
       { id:"broad", label:"Remove permission safeguards (unsafe)", initial:false, help:"A shortcut with unacceptable scope, not a production recommendation." }
-    ]
+    ],
+    reference: {label:"IAM permissions boundaries", url:"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html"}
   },
   "private-nat-v1": {
     title: "Restore outbound HTTPS",
@@ -21,7 +22,8 @@ export const SANDBOX_SCENARIOS = Object.freeze({
       { id:"appRoute", label:"App traffic goes to NAT", initial:true, help:"The application route is already present." },
       { id:"natRoute", label:"NAT traffic goes to internet gateway", initial:false, help:"This is the missing egress path in the supplied model." },
       { id:"egress", label:"Allow outbound HTTPS", initial:true, help:"Existing rule already allows TCP 443." }
-    ]
+    ],
+    reference: {label:"NAT gateway scenarios", url:"https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html"}
   },
   "resolver-blindspot-v1": {
     title: "Build a defensible investigation",
@@ -31,7 +33,8 @@ export const SANDBOX_SCENARIOS = Object.freeze({
       { id:"resolverLogs", label:"Record future DNS queries", initial:false, help:"Capture supported future DNS queries, not historical ones." },
       { id:"hostEvidence", label:"Record the process making queries", initial:false, help:"Collect process-level evidence with approved endpoint tooling." },
       { id:"claimHistory", label:"Claim old missing records are recovered (incorrect)", initial:false, help:"This is not possible. Avoid unsupported retrospective conclusions." }
-    ]
+    ],
+    reference: {label:"Resolver query logging", url:"https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-query-logs.html"}
   }
 });
 

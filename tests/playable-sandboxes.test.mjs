@@ -53,3 +53,12 @@ test("invalid scenario and state cannot be used to bypass simulation",()=>{
  assert.throws(()=>simulateSandbox("other",{}),/invalid_sandbox_state/);
  assert.throws(()=>simulateSandbox("private-nat-v1",{natRoute:"true"}),/invalid_sandbox_state/);
 });
+test("every sandbox scenario has an official AWS documentation reference",()=>{
+ for(const [id,scenario] of Object.entries(SANDBOX_SCENARIOS)){
+   assert.ok(scenario.reference,"scenario missing reference: "+id);
+   assert.ok(scenario.reference.label,"scenario reference missing label: "+id);
+   assert.ok(scenario.reference.url,"scenario reference missing url: "+id);
+   assert.match(scenario.reference.url,/^https:\/\/docs\.aws\.amazon\.com\//,"scenario reference must be official AWS docs: "+id);
+   assert.ok(scenario.reference.label.length>10,"scenario reference label too short: "+id);
+ }
+});

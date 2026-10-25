@@ -46,13 +46,11 @@ function openClue(incident, clue, button) {
   const probe = getIncidentProbes(incident.id).find(item => item.id === clue.probeId);
   $("clue-finding").textContent = clue.finding;
   $("clue-meaning").textContent = clue.meaning;
-  const source = getMissionClues(incident.id).references.find((_, index) =>
-    getMissionClues(incident.id).clues[index].probeId === clue.probeId);
   const link = $("clue-source");
-  link.hidden = !source;
-  if (source) {
-    link.href = source.url;
-    link.textContent = `VERIFY WITH AWS: ${source.label} ↗`;
+  link.hidden = !clue.reference;
+  if (clue.reference) {
+    link.href = clue.reference.url;
+    link.textContent = `VERIFY WITH AWS: ${clue.reference.label} ↗`;
   }
   $("clue-query").textContent = probe.query + " / SYNTHETIC";
   $("clue-text").textContent = probe.output;

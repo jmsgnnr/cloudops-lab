@@ -69,6 +69,12 @@ try {
     assert.equal(await desktop.locator("#mission-to-report").isEnabled(),true);
     const baseline = await desktop.locator("#playable-verdict").innerText();
     assert.equal(baseline.length>5,true);
+    // Every sandbox result must show an official AWS documentation reference link
+    const sandboxLink=await desktop.locator("#playable-source");
+    assert.equal(await sandboxLink.isVisible(),true,"sandbox reference link should be visible");
+    assert.match(await sandboxLink.getAttribute("href"),/^https:\/\/docs\.aws\.amazon\.com\//,"sandbox reference must be official AWS docs");
+    assert.equal(await sandboxLink.getAttribute("target"),"_blank","sandbox reference should open in new tab");
+    assert.equal(await sandboxLink.getAttribute("rel"),"noopener noreferrer","sandbox reference needs safe external-link attributes");
 
     await desktop.locator("#playable-controls input").nth(1).check();
     if(i===2) await desktop.locator("#playable-controls input").nth(0).check();
@@ -96,6 +102,12 @@ try {
     assert.equal(await desktop.locator("#clue-output").isVisible(),true);
     assert.equal(await desktop.locator("#clue-raw").evaluate(n=>n.open),false);
     assert.equal((await desktop.locator("#clue-finding").innerText()).length>20,true);
+    // Every clue must have an official AWS documentation reference link
+    const clueLink=await desktop.locator("#clue-source");
+    assert.equal(await clueLink.isVisible(),true,"clue reference link should be visible");
+    assert.match(await clueLink.getAttribute("href"),/^https:\/\/docs\.aws\.amazon\.com\//,"clue reference must be official AWS docs");
+    assert.equal(await clueLink.getAttribute("target"),"_blank","clue reference should open in new tab");
+    assert.equal(await clueLink.getAttribute("rel"),"noopener noreferrer","clue reference needs safe external-link attributes");
     await desktop.locator("#clue-raw summary").click();
     assert.equal(await desktop.locator("#clue-text").isVisible(),true);
     assert.equal((await desktop.locator("#clue-text").innerText()).length>25,true);

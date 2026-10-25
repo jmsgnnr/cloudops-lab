@@ -23,6 +23,13 @@ function status() {
     $("playable-verdict").textContent = result.status;
     $("playable-explanation").textContent = result.explanation;
     $("playable-evidence").textContent = result.evidence;
+    const scenario = SANDBOX_SCENARIOS[incidentId];
+    const link = $("playable-source");
+    link.hidden = !scenario.reference;
+    if (scenario.reference) {
+      link.href = scenario.reference.url;
+      link.textContent = `${scenario.reference.label} ↗`;
+    }
   }
   for (const [i,el] of [...$("playable-topology").children].entries()) {
     el.classList.toggle("is-reachable",Boolean(result?.serviceOk) && i===$("playable-topology").children.length-1);
