@@ -37,5 +37,5 @@ Local development is a static site plus Node tests. `package.json` has no start 
 
 - Serve the repository root with `python3 -m http.server 3456 --bind 0.0.0.0` and open `http://127.0.0.1:3456`. On the default image, Python 3.12 serves `.mjs` as `text/javascript`.
 - Node 22 matches CI. Run `node --check app.mjs`, `node --check engine.mjs`, `node --check data/advanced-challenges.mjs`, and `node --test --test-concurrency=1 tests/*.test.mjs`. Those tests do not import `node_modules`.
-- `npm ci` installs Playwright for the optional scripts in `qa/`. Those scripts launch system Chrome (the `chrome` channel) against a preview server that is already running.
+- `npm ci` installs Playwright for the optional scripts in `qa/`. Those scripts launch system Chrome (the `chrome` channel) against a preview server that is already running. `package.json` is not on `main` yet, so the Cloud Agent install runs `npm ci` only when `package-lock.json` is present. On a branch that adds the lockfile, run `npm ci` once after checkout.
 - No secrets, login, or external services are required. Planned membership copy is not live billing. `.cursor/environment.json` is gitignored; keep Cloud Agent install and start configuration in the environment panel.
