@@ -2,8 +2,20 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { INCIDENTS, INCIDENT_PROMPTS, buildIncidentSubmission } from "../data/incident-pilots.mjs";
 import { QUESTIONS } from "../data/questions.mjs";
+import { getMissionClues } from "../data/mission-clues.mjs";
 
 describe("synthetic incident pilots", () => {
+  it("offers a claim-specific official AWS reference for each of the three clues in every mission", () => {
+    for (const incident of INCIDENTS) {
+      const mission = getMissionClues(incident.id);
+      assert.equal(mission.clues.length, 3);
+      for (const clue of mission.clues) {
+        assert.ok(clue.finding && clue.meaning && clue.reference);
+        assert.ok(clue.reference.label && clue.reference.url);
+        assert.match(clue.reference.url, /^https:\/\/docs\.aws\.amazon\.com\//);
+      }
+    }
+  });
   it("has three distinct versioned evidence-rich cases but no grading keys", () => {
     assert.equal(INCIDENTS.length, 3);
     assert.equal(new Set(INCIDENTS.map(i => i.id)).size, 3);
