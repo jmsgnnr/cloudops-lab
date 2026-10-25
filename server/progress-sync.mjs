@@ -37,7 +37,7 @@ function ids(values, allowedIds) {
 function normalizeAttempt(a) {
   if (!a || typeof a !== "object" || Array.isArray(a)) return null;
   if (typeof a.track !== "string" || !Object.hasOwn(TRACKS, a.track) ||
-      !["practice", "exam"].includes(a.mode)) return null;
+      !["practice", "exam", "timed"].includes(a.mode)) return null;
   if (!finiteInt(a.correct, 0, 216) || !finiteInt(a.total, 1, 216) ||
       a.correct > a.total || !finiteInt(a.percent, 0, 100) ||
       a.percent !== Math.round(100 * a.correct / a.total) || !iso(a.finishedAt)) return null;

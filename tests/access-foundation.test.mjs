@@ -90,6 +90,18 @@ test("re-import merges attempts and bookmarks idempotently and respects the 30-a
   const capped=mergeProgress(progress({attempts:multiple}),progress(),ids,{now});
   assert.equal(capped.attempts.length,30);
 });
+test("legacy timed attempts survive normalization, import, and account API round trips",async()=>{
+  const legacy=progress({attempts:[{...attempt(),mode:"timed"}]});
+  assert.equal(normalizeProgress(legacy,ids).attempts[0].mode,"timed");
+  const merged=mergeProgress(emptyProgress(),legacy,ids,{now});
+  assert.equal(merged.attempts[0].mode,"timed");
+  const {api}=harness();
+  const result=await api(apiEvent("POST","/api/v1/progress/import","alice",{importConsent:true,progress:legacy}));
+  assert.equal(result.statusCode,200);
+  const fetched=await api(apiEvent("GET","/api/v1/progress","alice"));
+  assert.equal(fetched.statusCode,200);
+  assert.equal(body(fetched).progress.attempts[0].mode,"timed");
+});
 test("future-dated browser imports cannot evict an account's saved history",()=>{
   const saved=progress({attempts:[attempt(sample,"2026-10-20T18:00:00.000Z")]});
   const fakeFuture=Array.from({length:30},(_,i)=>attempt(sample,
