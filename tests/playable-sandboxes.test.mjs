@@ -22,6 +22,15 @@ test("IAM permissions boundary requires narrow effective authorization, never br
  assert.match(good.explanation,/other applicable policy conditions/);
  assert.equal(simulateSandbox(id,{...state,boundary:true,identity:false}).healthy,false);
 });
+test("IAM broad bypass without identity permission still denies access with correct explanation",()=>{
+ const id="iam-boundary-v1";
+ const deniedWithBroadBypass=simulateSandbox(id,{identity:false,boundary:false,broad:true});
+ assert.equal(deniedWithBroadBypass.serviceOk,false,"access should be denied");
+ assert.equal(deniedWithBroadBypass.healthy,false,"should not be healthy");
+ assert.equal(deniedWithBroadBypass.risk,true,"should flag risk from broad bypass");
+ assert.match(deniedWithBroadBypass.explanation,/unsafe bypass.*remains denied.*identity policy lacks/i,"explanation should note identity policy is missing");
+ assert.match(deniedWithBroadBypass.evidence,/AccessDenied/,"evidence should show access denied");
+});
 test("NAT needs all modeled route and egress prerequisites",()=>{
  const id="private-nat-v1",state=newSandboxState(id);
  assert.equal(simulateSandbox(id,state).healthy,false);

@@ -54,11 +54,13 @@ export function simulateSandbox(incidentId, state) {
       healthy:safe,
       serviceOk:permitted,
       risk:!!state.broad,
-      explanation:state.broad
+      explanation:state.broad && permitted
         ?"The model permits the read after removing the boundary, but that shortcut creates an overbroad permissions risk. Restore guardrails and scope the Allow."
-        :safe
-          ?"The two required Allow layers now overlap for this modeled GetObject request. In AWS you would also verify all other applicable policy conditions."
-          :"The read is denied in this model because either the identity policy or its permissions boundary lacks the required allowance.",
+        :state.broad && !permitted
+          ?"Even with the unsafe bypass, access remains denied because the identity policy lacks the required GetObject allowance. Restore the identity permission first, then use the scoped boundary instead."
+          :safe
+            ?"The two required Allow layers now overlap for this modeled GetObject request. In AWS you would also verify all other applicable policy conditions."
+            :"The read is denied in this model because either the identity policy or its permissions boundary lacks the required allowance.",
       evidence:"Simulated S3 GetObject: "+(permitted?"allowed":"AccessDenied")+"; guardrails: "+(state.broad?"weakened":"retained")
     };
   }
