@@ -673,6 +673,7 @@ function init() {
   });
   $("tab-practice").addEventListener("click", () => setWorkspacePanel("practice"));
   $("tab-labs").addEventListener("click", () => setWorkspacePanel("labs"));
+  $("field-labs-stat").addEventListener("click", () => setWorkspacePanel("labs"));
   const customButton = $("customize-session");
   const customPanel = $("session-details");
   const toggleSessionSettings = (open) => {
