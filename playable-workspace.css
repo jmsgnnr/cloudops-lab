@@ -35,3 +35,37 @@
   .playable-node { min-width:0; font-size:.66rem; padding:.85rem .3rem; }
   .playable-lab { padding:.7rem; }
 }
+
+/* IAM mission: investigation and reversible actions, not boolean toggles. */
+.playable-controls.is-iam-mission { display:grid; grid-template-columns:minmax(0,1fr); gap:.8rem; }
+.iam-mission-context { margin:0; color:var(--paper); font-size:.85rem; line-height:1.5; max-width:75ch; }
+.iam-mission-group { min-width:0; border:1px solid var(--border-strong); background:var(--ink-deep); padding:.85rem; }
+.iam-mission-group h5, .iam-mission-history h5 {
+  margin:0 0 .65rem; color:var(--acid); font:.7rem/1.35 var(--mono); letter-spacing:.05em;
+}
+.iam-mission-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
+.iam-mission-action {
+  display:flex; flex-direction:column; gap:.35rem; width:100%; text-align:left;
+  padding:.8rem; border:1px solid var(--border-strong); color:var(--paper);
+  background:var(--ink-raised); cursor:pointer; font:inherit;
+}
+.iam-mission-action:hover, .iam-mission-action:focus-visible { border-color:var(--acid); background:#1b251b; }
+.iam-mission-action strong { font-size:.81rem; line-height:1.35; }
+.iam-mission-action small { color:var(--muted); font-size:.73rem; line-height:1.4; }
+.iam-mission-action.is-unsafe { border-left:3px solid var(--pink); }
+.iam-mission-undo { justify-self:start; }
+.iam-mission-finding {
+  margin:0; padding:.85rem; border-left:3px solid var(--acid);
+  background:#1b251b; color:var(--paper); font:.81rem/1.5 var(--mono);
+  overflow-wrap:anywhere;
+}
+.iam-mission-history { border-top:1px dashed var(--border-strong); padding:.85rem 0 0; }
+.iam-mission-history ol { margin:0; padding:0; list-style:none; display:grid; gap:.4rem; }
+.iam-mission-history li { color:var(--muted); font:.72rem/1.45 var(--mono); overflow-wrap:anywhere; }
+.iam-mission-action:focus-visible, .iam-mission-undo:focus-visible {
+  outline:2px solid var(--focus); outline-offset:3px;
+}
+@media(max-width:780px) {
+  .iam-mission-choices { grid-template-columns:1fr; }
+  .iam-mission-group { padding:.7rem; }
+}
