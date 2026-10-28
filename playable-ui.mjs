@@ -1,10 +1,13 @@
 import { SANDBOX_SCENARIOS, newSandboxState, simulateSandbox } from "./data/playable-sandboxes.mjs";
+import { IAM_ACTIONS, IAM_INSPECTIONS, newIamMission, inspectIamMission,
+  changeIamMission, undoIamMission, testIamMission } from "./data/iam-mission.mjs";
 const $ = id => document.getElementById(id);
 let incidentId = null;
 let state = null;
 let result = null;
 let attempts = 0;
 let notifyTest = null;
+let iamState = null;
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -36,11 +39,95 @@ function status() {
   }
 }
 
+function renderIamControls(focusKey = null) {
+  const host = $("playable-controls");
+  host.replaceChildren();
+  host.classList.add("is-iam-mission");
+
+  host.append(node("p", "iam-mission-context",
+    "ALERT: The reporting job cannot read its daily file. Inspect the synthetic environment, change one policy setting, then RUN TEST. Undo mistakes as needed."));
+
+  const makeGroup = (title, entries, mode) => {
+    const section = document.createElement("section");
+    section.className = "iam-mission-group";
+    section.append(node("h5", "", title));
+    const choices = node("div", "iam-mission-choices", "");
+    for (const option of entries) {
+      const button = node("button", "iam-mission-action", "");
+      button.type = "button";
+      button.dataset[mode] = option.id;
+      button.append(node("strong", "", option.label), node("small", "", option.detail));
+      if (option.id === "WILDCARD_BOUNDARY") button.classList.add("is-unsafe");
+      button.addEventListener("click", () => {
+        if (mode === "inspection") {
+          iamState = inspectIamMission(iamState, option.id);
+        } else {
+          iamState = changeIamMission(iamState, option.id);
+          result = iamState.lastTest;
+          status();
+          notifyTest?.(null);
+        }
+        renderIamControls(mode + ":" + option.id);
+      });
+      choices.append(button);
+    }
+    section.append(choices);
+    host.append(section);
+  };
+
+  makeGroup("01 / INSPECT SIGNALS", IAM_INSPECTIONS, "inspection");
+  makeGroup("02 / CHANGE VIRTUAL IAM", IAM_ACTIONS, "action");
+
+  const undo = node("button", "outline-button iam-mission-undo", "↶ UNDO LAST CONFIG CHANGE");
+  undo.type = "button";
+  undo.disabled = iamState.history.length === 0;
+  undo.dataset.undo = "last";
+  undo.addEventListener("click", () => {
+    iamState = undoIamMission(iamState);
+    result = null;
+    status();
+    notifyTest?.(null);
+    renderIamControls("undo:last");
+  });
+  host.append(undo);
+
+  const finding = node("p", "iam-mission-finding", iamState.finding ||
+    "Start with any inspection or make a change directly. All operations are simulated.");
+  finding.setAttribute("role", "status");
+  finding.setAttribute("aria-live", "polite");
+  host.append(finding);
+
+  const log = document.createElement("section");
+  log.className = "iam-mission-history";
+  log.append(node("h5", "", "ACTION HISTORY / LATEST FIRST"));
+  const list = document.createElement("ol");
+  for (const item of [...iamState.journal].reverse().slice(0, 8)) {
+    list.append(node("li", "", String(item.sequence).padStart(2, "0") + " · " + item.description));
+  }
+  if (!list.children.length) list.append(node("li", "", "No actions yet. Your first test is available now."));
+  log.append(list);
+  host.append(log);
+
+  if (focusKey) {
+    const [kind, id] = focusKey.split(":");
+    const focused = kind === "undo" ? undo : [...host.querySelectorAll("button")].find(
+      candidate => candidate.dataset[kind] === id);
+    focused?.focus({ preventScroll: true });
+  }
+}
+
 export function setupPlayableLab(onTest) {
   notifyTest = onTest;
   $("playable-test").addEventListener("click", () => {
     if (!incidentId) return;
-    result = simulateSandbox(incidentId,state);
+    if (iamState) {
+      const tested = testIamMission(iamState);
+      iamState = tested.state;
+      result = tested.result;
+      renderIamControls();
+    } else {
+      result = simulateSandbox(incidentId,state);
+    }
     attempts++;
     status();
     onTest?.(result);
@@ -58,6 +145,7 @@ export function openPlayableLab(id) {
   if (!SANDBOX_SCENARIOS[id]) return;
   incidentId = id;
   state = newSandboxState(id);
+  iamState = id === "iam-boundary-v1" ? newIamMission() : null;
   result = null;
   attempts = 0;
   const scenario = SANDBOX_SCENARIOS[id];
@@ -69,6 +157,12 @@ export function openPlayableLab(id) {
     $("playable-topology").append(node("span","playable-node",label));
   }
   $("playable-controls").replaceChildren();
+  if (iamState) {
+    renderIamControls();
+    status();
+    return;
+  }
+  $("playable-controls").classList.remove("is-iam-mission");
   for (const item of scenario.switches) {
     const label = document.createElement("label");
     label.className = "playable-switch";
