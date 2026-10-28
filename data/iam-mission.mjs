@@ -15,7 +15,8 @@ export const IAM_INSPECTIONS = Object.freeze([
   { id: "IDENTITY", label: "Inspect the role policy", detail: "See which object read the role explicitly allows." },
   { id: "BOUNDARY", label: "Inspect the permissions boundary", detail: "Find out what maximum permissions the boundary allows." }
 ]);
-const REPORT = "arn:aws:s3:::example-reporting/daily/report.csv";
+const REPORT = "arn:aws:s3:::cloudlabs-example-reports/2026/summary.csv";
+const ROLE_SCOPE = "arn:aws:s3:::cloudlabs-example-reports/2026/*";
 
 function assertState(state) {
   if (!state || state.version !== IAM_MISSION_VERSION ||
@@ -42,7 +43,7 @@ export function inspectIamMission(state, id) {
     ? "Reporting task failed: s3:GetObject returned AccessDenied for the daily report. No policy cause is shown in the job log."
     : id === "IDENTITY"
       ? (state.identityAllow
-          ? "Identity policy: Allow s3:GetObject for " + REPORT + "."
+          ? "Identity policy: Allow s3:GetObject for " + ROLE_SCOPE + " (including " + REPORT + ")."
           : "Identity policy: no matching Allow for s3:GetObject on the report.")
       : state.boundary === "missing"
         ? "Permissions boundary: no matching Allow for s3:GetObject on this report."
