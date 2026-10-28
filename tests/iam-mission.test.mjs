@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { INCIDENTS } from "../data/incident-pilots.mjs";
 import {
   IAM_ACTIONS, IAM_INSPECTIONS, IAM_MISSION_VERSION, newIamMission,
   inspectIamMission, changeIamMission, undoIamMission, testIamMission
@@ -100,4 +101,15 @@ test("bad action, probe, and stale state fail closed", () => {
   assert.throws(()=>changeIamMission(newIamMission(), "REMOVE_ALL_BOUNDARIES"), /invalid_iam_action/);
   assert.throws(()=>inspectIamMission(newIamMission(), "__proto__"), /invalid_iam_inspection/);
   assert.throws(()=>testIamMission({...newIamMission(), version:999}), /invalid_iam_mission_state/);
+});
+
+test("IAM mission object and role scope agree with the underlying case artifacts", () => {
+  const caseFile = INCIDENTS.find(item => item.id === "iam-boundary-v1");
+  const resource = "arn:aws:s3:::cloudlabs-example-reports/2026/summary.csv";
+  assert.match(caseFile.artifacts[0].body, /cloudlabs-example-reports\/2026\/summary.csv/);
+  const identity = inspectIamMission(newIamMission(), "IDENTITY");
+  assert.ok(identity.finding.includes(resource));
+  assert.ok(identity.finding.includes("cloudlabs-example-reports/2026/*"));
+  const boundary = inspectIamMission(newIamMission(), "BOUNDARY");
+  assert.match(boundary.finding, /no matching Allow/);
 });
