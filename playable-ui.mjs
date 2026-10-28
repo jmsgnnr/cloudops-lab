@@ -65,7 +65,7 @@ function renderIamControls(focusKey = null) {
           iamState = changeIamMission(iamState, option.id);
           result = iamState.lastTest;
           status();
-          notifyTest?.(null);
+          notifyTest?.(result);
         }
         renderIamControls(mode + ":" + option.id);
       });
@@ -110,7 +110,7 @@ function renderIamControls(focusKey = null) {
 
   if (focusKey) {
     const [kind, id] = focusKey.split(":");
-    const focused = kind === "undo" ? undo : [...host.querySelectorAll("button")].find(
+    const focused = kind === "undo" ? (undo.disabled ? $("playable-test") : undo) : [...host.querySelectorAll("button")].find(
       candidate => candidate.dataset[kind] === id);
     focused?.focus({ preventScroll: true });
   }
