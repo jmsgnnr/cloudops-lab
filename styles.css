@@ -613,6 +613,30 @@ h3 {
   margin: 0 0 1rem;
 }
 
+.storage-banner-slot:not(:empty) { position: sticky; top: 0; z-index: 20; }
+.storage-banner {
+  margin: 0;
+  padding: 0.6rem 1rem;
+  background: var(--ink-deep);
+  border-top: 1px solid var(--warn);
+  border-bottom: 1px solid var(--warn);
+  border-left: 4px solid var(--warn);
+  color: var(--paper);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.storage-banner strong { color: var(--warn); letter-spacing: 0.08em; }
+.storage-note:empty { display: none; }
+.storage-note {
+  margin: 0.75rem 0 1rem;
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--warn);
+  background: var(--ink-deep);
+  color: var(--paper);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .secondary-actions {
   display: flex;
   flex-wrap: wrap;

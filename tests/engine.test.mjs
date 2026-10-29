@@ -9,6 +9,8 @@ import {
   readProgressWithReport,
   isValidAttempt,
   storeProgress,
+  writeProgress,
+  createProgressStorage,
   recordAttempt,
   emptyProgress,
   STORAGE_KEY
@@ -316,5 +318,82 @@ describe("choice order randomization", () => {
     assert.notStrictEqual(selected, original);
     assert.notDeepEqual(selected.options, original.options);
     assert.deepEqual(selected.answers.map(i => selected.options[i]), original.answers.map(i => original.options[i]));
+  });
+});
+
+describe("storage durability", () => {
+  const quota = () => Object.assign(new Error("full"), { name: "QuotaExceededError", code: 22 });
+  const goodBacking = () => {
+    const m = new Map();
+    const b = { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { if (b.fail) throw b.fail; m.set(k, v); }, removeItem: k => m.delete(k), m, fail: null };
+    return b;
+  };
+
+  it("reports persisted writes when the backing store works", () => {
+    const b = goodBacking();
+    const s = createProgressStorage(() => b);
+    assert.equal(s.durable, true);
+    assert.equal(writeProgress(s, emptyProgress()), "persisted");
+    assert.equal(storeProgress(s, emptyProgress()), true);
+    assert.ok(b.m.has(STORAGE_KEY));
+  });
+
+  it("getter denial: not durable, practice still works, writes are session-only", () => {
+    const s = createProgressStorage(() => { throw new DOMException("denied", "SecurityError"); });
+    assert.equal(s.durable, false);
+    assert.equal(s.reason, "unavailable");
+    const p = emptyProgress(); p.bookmarks.push("clf-01");
+    assert.equal(writeProgress(s, p), "session-only");
+    assert.equal(storeProgress(s, p), false);
+    assert.deepEqual(readProgress(s).bookmarks, ["clf-01"]);
+  });
+
+  it("setItem throwing at startup probe: not durable", () => {
+    const b = goodBacking(); b.fail = new Error("read only");
+    const s = createProgressStorage(() => b);
+    assert.equal(s.durable, false);
+    assert.equal(writeProgress(s, emptyProgress()), "session-only");
+    assert.equal(b.m.size, 0);
+  });
+
+  it("quota exhaustion: degrades, flags quota, keeps data in memory, notifies once", () => {
+    const b = goodBacking();
+    const s = createProgressStorage(() => b);
+    let notified = 0;
+    s.onChange(() => notified++);
+    assert.equal(writeProgress(s, emptyProgress()), "persisted");
+    b.fail = quota();
+    const p = emptyProgress(); p.missed.push("clf-02");
+    assert.equal(writeProgress(s, p), "session-only");
+    assert.equal(writeProgress(s, p), "session-only");
+    assert.equal(s.durable, false);
+    assert.equal(s.reason, "quota");
+    assert.equal(notified, 1);
+    assert.deepEqual(readProgress(s).missed, ["clf-02"]);
+  });
+
+  it("mid-session revocation: works, then throws; earlier data stays readable", () => {
+    const b = goodBacking();
+    const s = createProgressStorage(() => b);
+    const p = emptyProgress(); p.bookmarks.push("clf-01");
+    assert.equal(writeProgress(s, p), "persisted");
+    b.fail = new DOMException("revoked", "SecurityError");
+    b.getItem = () => { throw new DOMException("revoked", "SecurityError"); };
+    assert.deepEqual(readProgress(s).bookmarks, ["clf-01"]);
+    assert.equal(s.durable, false);
+    assert.equal(s.reason, "revoked");
+    const p2 = { ...p, bookmarks: ["clf-01", "clf-03"] };
+    assert.equal(writeProgress(s, p2), "session-only");
+    assert.deepEqual(readProgress(s).bookmarks, ["clf-01", "clf-03"]);
+  });
+
+  it("reset on a non-durable store is not reported as persisted", () => {
+    const s = createProgressStorage(() => { throw new Error("denied"); });
+    assert.notEqual(writeProgress(s, emptyProgress()), "persisted");
+  });
+
+  it("reports failed when the storage object itself throws", () => {
+    const s = { setItem() { throw quota(); }, getItem: () => null };
+    assert.equal(writeProgress(s, emptyProgress()), "failed");
   });
 });

@@ -107,8 +107,72 @@ export function readProgressWithReport(storage) {
   } catch { return { progress: emptyProgress(), droppedAttempts: 0 }; }
 }
 export function readProgress(storage) { return readProgressWithReport(storage).progress; }
-export function storeProgress(storage, progress) {
-  try { storage.setItem(STORAGE_KEY, JSON.stringify(progress)); return true; } catch { return false; }
+/**
+ * Write results are one of:
+ *  "persisted"    the browser accepted the write and it will survive a tab close
+ *  "session-only" the write is only held in memory for this tab
+ *  "failed"       the write could not be stored anywhere
+ */
+export const WRITE_PERSISTED = "persisted";
+export const WRITE_SESSION_ONLY = "session-only";
+export const WRITE_FAILED = "failed";
+
+export function writeProgress(storage, progress) {
+  try {
+    const result = storage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    if (storage.durable === false || result === WRITE_SESSION_ONLY) return WRITE_SESSION_ONLY;
+    return WRITE_PERSISTED;
+  } catch { return WRITE_FAILED; }
+}
+/** True only when the write is known to be durable. Session-only writes are not "stored". */
+export function storeProgress(storage, progress) { return writeProgress(storage, progress) === WRITE_PERSISTED; }
+
+const isQuotaError = e => e?.name === "QuotaExceededError" || e?.name === "NS_ERROR_DOM_QUOTA_REACHED" || e?.code === 22 || e?.code === 1014;
+/**
+ * Storage adapter that never pretends. `getBacking` may throw (getter denial). Until a probe write succeeds
+ * `durable` is false and values live in memory only. If the backing store later starts throwing (revocation,
+ * quota), the adapter degrades for the rest of this page load: values stay usable in memory, `durable`
+ * flips to false, `reason` records why ("unavailable" | "quota" | "revoked"), and listeners are told once.
+ */
+export function createProgressStorage(getBacking) {
+  const mem = new Map();
+  const listeners = new Set();
+  let backing = null;
+  const adapter = { durable: false, reason: null, onChange: fn => { listeners.add(fn); return () => listeners.delete(fn); } };
+  const degrade = (reason) => {
+    if (!adapter.durable) return;
+    adapter.durable = false; adapter.reason = reason;
+    for (const fn of listeners) { try { fn(adapter); } catch { /* listener errors must not break storage */ } }
+  };
+  try {
+    backing = getBacking();
+    backing.setItem("__storage_probe__", "1");
+    backing.removeItem("__storage_probe__");
+    adapter.durable = true;
+  } catch (e) { backing = null; adapter.reason = isQuotaError(e) ? "quota" : "unavailable"; }
+  adapter.getItem = (k) => {
+    if (adapter.durable) {
+      try { const v = backing.getItem(k); if (v === null) mem.delete(k); else mem.set(k, v); return v; }
+      catch { degrade("revoked"); }
+    }
+    return mem.has(k) ? mem.get(k) : null;
+  };
+  adapter.setItem = (k, v) => {
+    mem.set(k, String(v));
+    if (adapter.durable) {
+      try { backing.setItem(k, v); return WRITE_PERSISTED; }
+      catch (e) { degrade(isQuotaError(e) ? "quota" : "revoked"); }
+    }
+    return WRITE_SESSION_ONLY;
+  };
+  adapter.removeItem = (k) => {
+    mem.delete(k);
+    if (adapter.durable) {
+      try { backing.removeItem(k); return WRITE_PERSISTED; } catch (e) { degrade(isQuotaError(e) ? "quota" : "revoked"); }
+    }
+    return WRITE_SESSION_ONLY;
+  };
+  return adapter;
 }
 export function recordAttempt(progress, { track, mode, result, finishedAt = new Date().toISOString() }) {
   const missed = new Set(progress.missed);
