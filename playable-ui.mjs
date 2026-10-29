@@ -18,6 +18,8 @@ let natDrafts = {};
 let dnsState = null;
 let dnsLive = null;
 let dnsBody = null;
+let missionListener = null;
+const emitMission = () => missionListener?.();
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -130,6 +132,7 @@ function renderIamControls(focusKey = null) {
   if (!list.children.length) list.append(node("li", "", "No actions yet. Your first test is available now."));
   log.append(list);
   host.append(log);
+  emitMission();
 
   if (focusKey) {
     const [kind, id] = focusKey.split(":");
@@ -365,6 +368,7 @@ function natRender(focusKey = null) {
   if (!history.children.length) history.append(node("li", "", "No actions yet. Your first test is available now."));
   log.append(history);
   host.append(log);
+  emitMission();
 
   if (focusKey) {
     let target = [...host.querySelectorAll("[data-focus]")].find(el => el.dataset.focus === focusKey);
@@ -636,6 +640,7 @@ function dnsRender(focusKey = null) {
   body.append(log);
 
   dnsLive.textContent = dnsState.finding || "Start by querying a source. All operations are simulated and nothing is sent.";
+  emitMission();
 
   if (focusKey) {
     const all = [...host.querySelectorAll("[data-focus]")];
@@ -754,6 +759,17 @@ export function openPlayableLab(id) {
     $("playable-controls").append(label);
   }
   status();
+}
+
+/** Journal of the mission now in play, for the optional debrief; null for anything else. */
+export function getPlayableMission() {
+  if (iamState) return { missionId: "iam-boundary-v1", journal: iamState.journal };
+  if (natState) return { missionId: "private-nat-v1", journal: natState.journal };
+  if (dnsState) return { missionId: "resolver-blindspot-v1", journal: dnsState.journal };
+  return null;
+}
+export function onMissionChange(listener) {
+  missionListener = listener;
 }
 
 export function lastPlayableResult() {

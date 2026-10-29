@@ -164,10 +164,12 @@ function assertState(state) {
     throw new Error("invalid_dns_mission_state");
   }
 }
-function withEvent(state, kind, description, details = {}) {
+/** `op` is the replayable input that produced the event (see data/mission-feedback.mjs). */
+function withEvent(state, kind, description, details = {}, op = null) {
   const sequence = state.sequence + 1;
-  return { ...state, ...details, sequence, journal: [...state.journal, { sequence, kind, description }] };
+  return { ...state, ...details, sequence, journal: [...state.journal, { sequence, kind, description, op }] };
 }
+const recorded = action => action.type === "BACKFILL_WINDOW" ? { type: action.type } : { type: action.type, value: action.value };
 const validNote = state => state.lastTest ? "Your last test is still valid." : "No test has run yet.";
 const has = (state, id) => state.evidence.includes(id);
 const meets = (state, needs) => (needs.all || []).every(id => has(state, id)) && (!needs.any || needs.any.some(id => has(state, id)));
@@ -188,12 +190,12 @@ export function collectDnsEvidence(state, id) {
   const item = DNS_EVIDENCE.find(e => e.id === id);
   if (!item) throw new Error("invalid_dns_evidence");
   if (has(state, id)) {
-    return withEvent(state, "reinspect", "Reopened " + item.label, { finding: item.source + ": " + readDnsEvidence(state, id).reading + " " + validNote(state) });
+    return withEvent(state, "reinspect", "Reopened " + item.label, { finding: item.source + ": " + readDnsEvidence(state, id).reading + " " + validNote(state) }, { t: "evidence", id });
   }
   const next = { ...state, evidence: [...state.evidence, id] };
   return withEvent(state, "evidence", "Added to timeline: " + item.label, {
     evidence: next.evidence, lastTest: null, finding: item.source + ": " + item.reading
-  });
+  }, { t: "evidence", id });
 }
 export function dnsLaneView(state) {
   assertState(state);
@@ -261,12 +263,12 @@ export function assessDnsFinding(state) {
 export function setDnsHypothesis(state, id) {
   assertState(state);
   if (id !== null && !DNS_HYPOTHESES.some(h => h.id === id)) throw new Error("invalid_dns_hypothesis");
-  if (state.hypothesis === id) return withEvent(state, "noop", "Hypothesis unchanged", { finding: "That was already your hypothesis. " + validNote(state) });
+  if (state.hypothesis === id) return withEvent(state, "noop", "Hypothesis unchanged", { finding: "That was already your hypothesis. " + validNote(state) }, { t: "hypothesis", id });
   const label = h => h ? DNS_HYPOTHESES.find(x => x.id === h).label : "none";
   const next = { ...state, hypothesis: id };
   return withEvent(state, "hypothesis", (state.hypothesis ? "Revised hypothesis to: " : "Hypothesis: ") + label(id), {
     hypothesis: id, lastTest: null, finding: assessDnsHypothesis(next).text
-  });
+  }, { t: "hypothesis", id });
 }
 export function classifyDnsClaim(state, claimId, label) {
   assertState(state);
@@ -274,13 +276,13 @@ export function classifyDnsClaim(state, claimId, label) {
   if (!claim) throw new Error("invalid_dns_claim");
   if (label !== null && !DNS_LABELS.includes(label)) throw new Error("invalid_dns_label");
   const current = state.claims[claimId] || null;
-  if (current === label) return withEvent(state, "noop", "Claim label unchanged", { finding: "That label was already set. " + validNote(state) });
+  if (current === label) return withEvent(state, "noop", "Claim label unchanged", { finding: "That label was already set. " + validNote(state) }, { t: "claim", id: claimId, label });
   const claims = { ...state.claims };
   if (label === null) delete claims[claimId]; else claims[claimId] = label;
   const next = { ...state, claims };
   return withEvent(state, "claim", label ? "Marked as " + label.toUpperCase() + ": " + claim.text : "Cleared label: " + claim.text, {
     claims, lastTest: null, finding: reviewDnsClaim(next, claimId).text
-  });
+  }, { t: "claim", id: claimId, label });
 }
 export function hintDnsMission(state) {
   assertState(state);
@@ -295,7 +297,7 @@ export function hintDnsMission(state) {
     : f.incorrect ? "Reopen the evidence behind the statement flagged for review and ask which source could have shown it."
     : !coverageOk || state.config.packetCapture === "all" ? "The old window is fixed. What would let a later event be tied to a hostname, and to a process, with the smallest scope?"
     : "Your finding and coverage look settled. Run the test to confirm against a simulated later event.";
-  return withEvent(state, "hint", "Asked for a hint", { hints: state.hints + 1, finding: "Hint: " + text });
+  return withEvent(state, "hint", "Asked for a hint", { hints: state.hints + 1, finding: "Hint: " + text }, { t: "hint" });
 }
 
 /* ---------- future telemetry changes ---------- */
@@ -316,21 +318,21 @@ function evaluate(state, action) {
 export function changeDnsMission(state, action) {
   assertState(state);
   const r = evaluate(state, action);
-  if (r.outcome !== "change") return withEvent(state, r.outcome, r.outcome === "noop" ? "No configuration change" : "Change rejected", { finding: r.message });
+  if (r.outcome !== "change") return withEvent(state, r.outcome, r.outcome === "noop" ? "No configuration change" : "Change rejected", { finding: r.message }, { t: "change", action: recorded(action) });
   return withEvent(state, "change", r.label + " (virtual only)", {
     config: { ...state.config, [r.control]: r.value },
     history: [...state.history, { config: { ...state.config }, action: r.label }],
     lastTest: null, finding: r.message
-  });
+  }, { t: "change", action: recorded(action) });
 }
 export function undoDnsMission(state) {
   assertState(state);
-  if (!state.history.length) return withEvent(state, "noop", "Nothing to undo", { finding: "No configuration change to undo. " + validNote(state) });
+  if (!state.history.length) return withEvent(state, "noop", "Nothing to undo", { finding: "No configuration change to undo. " + validNote(state) }, { t: "undo" });
   const previous = state.history[state.history.length - 1];
   return withEvent(state, "undo", "Undid: " + previous.action + " (virtual only)", {
     config: { ...previous.config }, history: state.history.slice(0, -1), lastTest: null,
     finding: "Last configuration change reversed. Evidence, hypothesis and labels are kept. Run the test again."
-  });
+  }, { t: "undo" });
 }
 
 /* ---------- simulated later event ---------- */
@@ -371,6 +373,10 @@ const SETTING_NOTES = [
   [c => c.hostCache === "off", "Turning off the host cache is not needed to learn the names, and it does not make the log complete: the VPC Resolver has its own cache, so repeats inside the TTL are still answered there and not logged. Treat logged counts as a lower bound."],
   [c => c.resolverLogging === "off", "Disassociating Resolver query logging removed the one source that records which names the VPC resolver was asked."]
 ];
+/** Teaching notes the test appends for settings that are not needed or that remove visibility. */
+export function dnsSettingNotes(config) {
+  return SETTING_NOTES.filter(([when]) => when(config)).map(([, text]) => text);
+}
 export function testDnsMission(state) {
   assertState(state);
   const sim = simulateLaterEvent(state.config);
@@ -387,7 +393,7 @@ export function testDnsMission(state) {
   const findingText = !hyp ? "Choose a hypothesis from your evidence."
     : finding.hypothesis.text + (finding.hypothesis.verdict === "supported" && (finding.incorrect || finding.unset)
       ? " " + (finding.unset ? finding.unset + " statement(s) still need a label." : "") + (finding.incorrect ? " " + finding.incorrect + " label(s) need review." : "") : "");
-  const notes = SETTING_NOTES.filter(([when]) => when(state.config)).map(([, text]) => text);
+  const notes = dnsSettingNotes(state.config);
   const coverageText = risk ? "Capturing packets on every instance adds payload privacy and cost exposure and still names no process. Undo it and collect telemetry on this instance only."
     : covered ? "In the simulated later event, Resolver logs show the names and the source instance, and host telemetry names the process. The 12:00-12:20 window stays unknown."
     : !sim.resolverOn ? "In the simulated later event Resolver logging is off, so the names are not recorded."
@@ -400,5 +406,5 @@ export function testDnsMission(state) {
       "; evidence collected: " + state.evidence.length + " of " + DNS_EVIDENCE.length +
       "; hypothesis: " + (hyp ? DNS_HYPOTHESES.find(h => h.id === hyp).label : "none") + "; hints used: " + state.hints
   };
-  return { state: withEvent(state, "test", "Later-event test: " + status, { lastTest: result, finding: result.explanation }), result };
+  return { state: withEvent(state, "test", "Later-event test: " + status, { lastTest: result, finding: result.explanation }, { t: "test" }), result };
 }
