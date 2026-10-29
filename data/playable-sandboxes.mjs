@@ -4,8 +4,8 @@
  */
 export const SANDBOX_SCENARIOS = Object.freeze({
   "iam-boundary-v1": {
-    title: "Repair the effective permission",
-    task: "The job can't download its file. Try changing permissions, then run the test.",
+    title: "Restore the daily report job",
+    task: "A production reporting job gets AccessDenied downloading its daily report. Investigate, apply the narrowest virtual IAM fix and prove the read works.",
     nodes: ["Reporting role", "Identity policy", "Permissions boundary", "S3 object"],
     switches: [
       { id:"identity", label:"The role can read the file", initial:true, help:"The role already has an identity-level Allow." },
