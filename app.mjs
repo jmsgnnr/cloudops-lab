@@ -7,7 +7,10 @@ import {
   scoreQuiz,
   evaluate,
   readProgressWithReport,
-  storeProgress,
+  writeProgress,
+  createProgressStorage,
+  WRITE_PERSISTED,
+  WRITE_FAILED,
   recordAttempt,
   emptyProgress,
   validateBank
@@ -500,7 +503,7 @@ function onPrev() {
 
 function updateBookmarkButton(q) {
   const saved = progress.bookmarks.includes(q.id);
-  bookmarkBtn.textContent = saved ? "★ SAVED" : "☆ SAVE QUESTION";
+  bookmarkBtn.textContent = saved ? (storage?.durable === false ? "★ MARKED (THIS TAB ONLY)" : "★ SAVED") : "☆ SAVE QUESTION";
   bookmarkBtn.setAttribute("aria-pressed", saved ? "true" : "false");
 }
 
@@ -511,8 +514,11 @@ function toggleBookmark() {
   if (set.has(q.id)) set.delete(q.id);
   else set.add(q.id);
   progress = { ...progress, bookmarks: [...set] };
-  if (!storeProgress(storage, progress)) {
-    sessionHint.textContent = "Could not save bookmarks  |  browser storage may be unavailable.";
+  const status = writeProgress(storage, progress);
+  if (status !== WRITE_PERSISTED) {
+    notifyCurrentView(status === WRITE_FAILED
+      ? "Bookmark change could not be stored anywhere. It may be lost when you leave this question."
+      : "Bookmark change is kept for this tab only. It will not be saved after you close this tab.");
   }
   updateBookmarkButton(q);
   updateStats();
@@ -528,22 +534,25 @@ function finishSession(reason) {
     mode: session.mode,
     result
   });
-  const stored = storeProgress(storage, progress);
+  const status = writeProgress(storage, progress);
   session = null;
-  renderResults(result, questions, reason, stored);
+  renderResults(result, questions, reason, status);
   showView("results");
+  if (status !== WRITE_PERSISTED) notifyCurrentView(status === WRITE_FAILED
+    ? "These results could not be stored anywhere. Export progress now if you want to keep a copy."
+    : "These results are kept for this tab only. They will not be saved after you close this tab.");
   updateStats();
 }
 
-function renderResults(result, questions, reason, stored) {
+function renderResults(result, questions, reason, status) {
   resultScore.textContent = `${result.percent}%`;
   const reasonNote =
     reason === "time"
       ? "Time expired  |  your answers were scored automatically."
       : `${result.correct} of ${result.total} correct this session.`;
-  resultSummary.textContent = stored
+  resultSummary.textContent = status === WRITE_PERSISTED
     ? reasonNote
-    : `${reasonNote} Progress could not be saved (storage unavailable).`;
+    : `${reasonNote} Not saved: progress is held for this tab only.`;
 
   domainResults.innerHTML = "";
   for (const [domain, stats] of Object.entries(result.byDomain)) {
@@ -594,10 +603,15 @@ function resetProgress() {
   );
   if (!ok) return;
   progress = emptyProgress();
-  storeProgress(storage, progress);
+  const status = writeProgress(storage, progress);
   updateStats();
   refreshCountOptions();
-  sessionHint.textContent = "Local progress cleared.";
+  if (status === WRITE_PERSISTED) {
+    sessionHint.textContent = "Local progress cleared.";
+    notifyCurrentView("Local progress cleared.");
+  } else {
+    notifyCurrentView("Progress cleared in this tab only. Browser storage is unavailable, so anything saved earlier in your browser could not be deleted and may return after you reload.");
+  }
 }
 
 function onQuit() {
@@ -631,24 +645,44 @@ function onKeyDown(event) {
   }
 }
 
-function initStorageFallback() {
-  try {
-    storage = window.localStorage;
-    const probe = "__storage_probe__";
-    storage.setItem(probe, "1");
-    storage.removeItem(probe);
-  } catch {
-    const mem = new Map();
-    storage = {
-      getItem: (k) => (mem.has(k) ? mem.get(k) : null),
-      setItem: (k, v) => {
-        mem.set(k, v);
-      },
-      removeItem: (k) => {
-        mem.delete(k);
-      }
-    };
+const BANNER_TEXT = "Temporary session only: progress won't be kept after you close this tab. Use Export progress to keep a copy.";
+
+/** Always-visible banner, outside every view, so it stays on screen in quiz, results and dashboard. */
+function renderStorageBanner() {
+  const slot = $("storage-banner");
+  const durable = storage?.durable !== false;
+  slot.textContent = "";
+  if (!durable) {
+    const p = document.createElement("p");
+    p.className = "storage-banner";
+    p.innerHTML = "<strong>TEMPORARY SESSION ONLY:</strong> ";
+    p.append(BANNER_TEXT.replace(/^Temporary session only: /, ""));
+    slot.appendChild(p);
   }
+  const copy = $("progress-storage-copy");
+  if (copy) copy.textContent = durable
+    ? "Nothing is uploaded. Sessions, missed questions and bookmarks are stored in your browser only."
+    : "Nothing is uploaded. Browser storage is unavailable, so sessions, missed questions and bookmarks are held in this tab only and are lost when you close it.";
+}
+
+/** Announce a storage message in whichever view is showing, via that view's live region. */
+function notifyCurrentView(message) {
+  const target = !quizView.hidden ? $("quiz-storage-note")
+    : !resultsView.hidden ? $("results-storage-note")
+    : $("progress-storage-note");
+  for (const id of ["quiz-storage-note", "results-storage-note", "progress-storage-note"]) {
+    if ($(id) !== target) $(id).textContent = "";
+  }
+  // Clear first so repeating the same message is announced again.
+  target.textContent = "";
+  setTimeout(() => { target.textContent = message; }, 30);
+}
+
+function initStorageFallback() {
+  storage = createProgressStorage(() => window.localStorage);
+  // Mid-session revocation: the banner (a live region) announces it; the failing write also reports in its own view.
+  storage.onChange(renderStorageBanner);
+  renderStorageBanner();
   const loaded = readProgressWithReport(storage);
   progress = loaded.progress;
   droppedAttempts = loaded.droppedAttempts;

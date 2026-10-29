@@ -20,12 +20,13 @@
     <div class="brand"><span class="brand-mark" aria-hidden="true">&gt;_</span><span>CLOUDOPS<span class="brand-accent"> LAB</span></span></div>
     <div class="topbar-right"><span class="online-dot" aria-hidden="true"></span><span>LOCAL FIRST</span><span class="topbar-divider">/</span><span id="question-total">216 ORIGINAL QUESTIONS</span></div>
   </header>
+  <div id="storage-banner" class="storage-banner-slot" role="status" aria-live="polite" aria-atomic="true"></div>
   <main id="main" class="shell">
     <section id="dashboard" class="dashboard" aria-labelledby="main-title">
       <header class="hero hero--compact">
         <div class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> BUILD THE KNOWLEDGE. PROVE THE SKILL.</div>
         <h1 id="main-title">Cloud knowledge,<br><span class="accent-text">under pressure.</span></h1>
-        <p class="intro">Study the AWS exam domains, drill what you miss, and investigate real-world engineering scenarios. No account required; your progress stays in this browser.</p>
+        <p class="intro">Study the AWS exam domains, drill what you miss, and investigate real-world engineering scenarios. No account required; progress is kept only in this browser, and only when browser storage is available.</p>
         <div class="meta-strip" aria-label="Available learning content">
           <span>06 PRACTICE TRACKS</span>
           <span class="meta-highlight" id="library-total">216 ORIGINAL QUESTIONS</span>
@@ -118,7 +119,8 @@
             <div><span class="stat-value" id="bookmarks-stat">0</span><span class="stat-label">BOOKMARKED</span></div>
           </div>
           <p class="stats-note" id="progress-recovery" role="status" aria-live="polite" hidden></p>
-          <p class="stats-note">Nothing is uploaded. Sessions, missed questions and bookmarks are stored in your browser only.</p>
+          <p class="storage-note" id="progress-storage-note" role="status" aria-live="polite" aria-atomic="true"></p>
+          <p class="stats-note" id="progress-storage-copy">Nothing is uploaded. Sessions, missed questions and bookmarks are stored in your browser only.</p>
           <div class="secondary-actions"><button id="export-btn" class="text-button" type="button">EXPORT PROGRESS ↗</button><button id="reset-btn" class="text-button muted" type="button">RESET DATA</button></div>
         </aside>
         </details>
@@ -157,6 +159,7 @@
         <div id="choice-list" class="choice-list" role="group" aria-label="Possible answers"></div>
         <div id="feedback" class="feedback" aria-live="polite" hidden></div>
         <div class="question-actions"><button type="button" id="bookmark-btn" class="text-button">☆ SAVE QUESTION</button><div class="question-nav"><button id="prev-btn" class="outline-button" type="button">← BACK TO TRACKS</button><button id="check-btn" class="primary-button" type="button">CHECK ANSWER →</button><button id="next-btn" class="primary-button" type="button" hidden>NEXT QUESTION →</button></div></div>
+        <p class="storage-note" id="quiz-storage-note" role="status" aria-live="polite" aria-atomic="true"></p>
       </article>
     </section>
     <section id="incident-view" class="incident-view" hidden aria-labelledby="incident-title">
@@ -270,6 +273,7 @@
       <span class="section-number">SESSION COMPLETE / DEBRIEF</span>
       <h2 id="results-title" tabindex="-1">Here's how you did.</h2>
       <div class="result-hero"><div><span id="result-score" class="result-score">0%</span><p id="result-summary"></p></div><button id="again-btn" class="primary-button" type="button">NEW SESSION ↗</button></div>
+      <p class="storage-note" id="results-storage-note" role="status" aria-live="polite" aria-atomic="true"></p>
       <h3>Performance by domain</h3><div id="domain-results" class="domain-results"></div>
       <h3>Answer review</h3><div id="review-list" class="review-list"></div>
     </section>
