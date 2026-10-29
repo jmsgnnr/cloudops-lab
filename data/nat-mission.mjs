@@ -104,10 +104,13 @@ function assertState(state) {
     throw new Error("invalid_nat_mission_state");
   }
 }
-function withEvent(state, kind, description, details = {}) {
+/** `op` is the replayable input that produced the event (see data/mission-feedback.mjs). */
+function withEvent(state, kind, description, details = {}, op = null) {
   const sequence = state.sequence + 1;
-  return { ...state, ...details, sequence, journal: [...state.journal, { sequence, kind, description }] };
+  return { ...state, ...details, sequence, journal: [...state.journal, { sequence, kind, description, op }] };
 }
+const ACTION_FIELDS = ["type", "table", "destination", "target", "subnet", "mode"];
+const recorded = action => Object.fromEntries(ACTION_FIELDS.filter(k => k in action).map(k => [k, action[k]]));
 export function newNatMission() {
   return { version: NAT_MISSION_VERSION, routes: freshRoutes(), natSubnet: "nat", appEgress: "https",
     inspections: [], history: [], journal: [], sequence: 0, lastTest: null, finding: null };
@@ -215,7 +218,7 @@ export function testNatMission(state) {
       " of " + app.trace.length + "; first drop: " + (app.failure ? app.failure.label : "none") +
       "; shared subnet " + NAT_PROBE.sharedSubnet + " " + sharedText + "; security group: " + (risk ? "all outbound" : "TCP 443 only")
   };
-  return { state: withEvent(state, "test", "Packet trace: " + status, { lastTest: result, finding: result.evidence }), result };
+  return { state: withEvent(state, "test", "Packet trace: " + status, { lastTest: result, finding: result.evidence }, { t: "test" }), result };
 }
 
 /* ---------- inspection ---------- */
@@ -231,7 +234,7 @@ export function inspectNatMission(state, id) {
     : "App security group: " + (state.appEgress === "https" ? "outbound TCP 443 allowed." : "all outbound traffic allowed.");
   return withEvent(state, "inspect", "Inspected " + id.toLowerCase().replaceAll("_", " "), {
     inspections: [...new Set([...state.inspections, id])], finding
-  });
+  }, { t: "inspect", id });
 }
 
 /* ---------- changes ---------- */
@@ -299,21 +302,21 @@ export function changeNatMission(state, action) {
   assertState(state);
   const r = evaluate(state, action);
   if (r.outcome !== "change") {
-    return withEvent(state, r.outcome, r.outcome === "noop" ? "No configuration change" : "Change rejected", { finding: r.message });
+    return withEvent(state, r.outcome, r.outcome === "noop" ? "No configuration change" : "Change rejected", { finding: r.message }, { t: "change", action: recorded(action) });
   }
   return withEvent(state, "change", r.label + " (virtual only)", {
     routes: r.next.routes, natSubnet: r.next.natSubnet, appEgress: r.next.appEgress,
     history: [...state.history, { ...snapshot(state), action: r.label }],
     lastTest: null, finding: r.message
-  });
+  }, { t: "change", action: recorded(action) });
 }
 export function undoNatMission(state) {
   assertState(state);
-  if (!state.history.length) return withEvent(state, "noop", "Nothing to undo", { finding: "No configuration change to undo." });
+  if (!state.history.length) return withEvent(state, "noop", "Nothing to undo", { finding: "No configuration change to undo." }, { t: "undo" });
   const previous = state.history[state.history.length - 1];
   return withEvent(state, "undo", "Undid: " + previous.action + " (virtual only)", {
     routes: previous.routes, natSubnet: previous.natSubnet, appEgress: previous.appEgress,
     history: state.history.slice(0, -1), lastTest: null,
     finding: "Last configuration change reversed. Retrace to verify the current state."
-  });
+  }, { t: "undo" });
 }

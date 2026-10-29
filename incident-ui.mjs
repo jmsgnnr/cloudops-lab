@@ -1,7 +1,8 @@
 import { INCIDENTS, INCIDENT_PROMPTS, buildIncidentSubmission } from "./data/incident-pilots.mjs";
 import { getIncidentProbes } from "./data/incident-probes.mjs";
 import { getMissionClues } from "./data/mission-clues.mjs";
-import { setupPlayableLab, openPlayableLab, lastPlayableResult } from "./playable-ui.mjs";
+import { setupPlayableLab, openPlayableLab, lastPlayableResult, getPlayableMission, onMissionChange } from "./playable-ui.mjs";
+import { setupMissionReview, refreshMissionReview, resetMissionReview, currentFeedbackText } from "./review-ui.mjs";
 
 const $ = id => document.getElementById(id);
 const PHASES = ["brief", "workbench", "report"];
@@ -206,6 +207,7 @@ function openIncident(incident, onView) {
   $("incident-status").textContent = "";
   renderClues(incident);
   renderArtifacts(incident);
+  resetMissionReview();
   openPlayableLab(incident.id);
   $("clue-raw").open = false;
   $("clue-output").hidden = true;
@@ -285,6 +287,25 @@ export function setupIncidentUI(onView) {
     $("mission-to-report").disabled = !result;
     $("mission-use-decision").disabled = !result;
   });
+  const nextIncident = () => INCIDENTS[INCIDENTS.findIndex(item=>item.id===currentIncident?.id)+1] || null;
+  onMissionChange(refreshMissionReview);
+  setupMissionReview({
+    getMission: getPlayableMission,
+    getNext: nextIncident,
+    onNext: () => {
+      const next = nextIncident();
+      if (!next) { $("incident-exit").click(); return; }
+      if (hasUnsavedNotes() && !window.confirm("Leave this mission? Unexported notes will be lost.")) return;
+      openIncident(next,onView);
+      $("incident-title").scrollIntoView({behavior:"auto",block:"start"});
+    },
+    onRetry: () => $("playable-reset").click(),
+    onChange: feedback => { $("mission-use-review").disabled = !feedback || feedback.stats.steps === 0; }
+  });
+  $("mission-use-review").addEventListener("click",()=>{
+    const review = currentFeedbackText();
+    if (review) attachText("verify",[review],"Mission debrief added to your notes. Edit it freely; it describes your actions, not a grade.");
+  });
   $("mission-to-report").addEventListener("click",()=>{
     if (lastPlayableResult()) showPhase("report");
   });
@@ -306,6 +327,7 @@ export function setupIncidentUI(onView) {
     currentIncident = null;
     exported = false;
     openedClues = new Set();
+    resetMissionReview();
     $("incident-fields").replaceChildren();
     onView("dashboard");
     $("incident-launch-title").focus({preventScroll:true});
