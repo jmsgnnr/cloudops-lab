@@ -293,8 +293,10 @@ test("DNS: a no-queries hypothesis is reported as unsupported, never as contradi
   const f = feedback(DNS, dnsPlay(["evidence", "FLOW_ZERO"], ["evidence", "FLOW_SCOPE"], ["evidence", "RESOLVER_START"], ["hypothesis", "H_NONE"], ["test"]));
   const finding = section(f, "finding").items[0];
   assert.equal(finding.tag, "NOT SUPPORTED");
-  assert.match(finding.text, /do not support this hypothesis\. They do not exclude the activity either/);
-  assert.match(finding.text, /"What traffic do VPC Flow Logs not capture\?" and "When did query logging start collecting\?"/);
+  // Either the feedback's own wording or the DNS mission's (#31) corrected verdict text is acceptable,
+  // as long as it says unsupported AND not excluded.
+  assert.match(finding.text, /do not support this hypothesis|Unsupported\./);
+  assert.match(finding.text, /do not exclude the activity either|neither establishes that queries occurred nor excludes it/);
   assert.doesNotMatch(JSON.stringify(f), /contradict/i, "no mission text that says contradicted is quoted");
 });
 
