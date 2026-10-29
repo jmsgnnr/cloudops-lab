@@ -118,7 +118,8 @@ function hop(key, label, ok, detail) { return { key, label, ok, detail }; }
 function runTrace(config, tableKey) {
   const { source, destination, port } = NAT_PROBE;
   const trace = [];
-  const done = () => ({ trace, ok: trace.every(h => h.ok), failure: trace.find(h => !h.ok) || null });
+  const done = () => ({ trace, ok: trace.every(h => h.ok), failure: trace.find(h => !h.ok) || null, egressRoute });
+  let egressRoute = null;
   const sg = tableKey === "app" && config.appEgress === "all"
     ? "Security group allows all outbound traffic (broader than the HTTPS need)."
     : "Security group allows outbound TCP 443.";
@@ -150,18 +151,19 @@ function runTrace(config, tableKey) {
   const natTable = config.natSubnet === "nat" ? "nat" : "app";
   const natPlace = config.natSubnet === "nat" ? "NAT subnet 10.20.1.0/24" : "app subnet 10.20.10.0/24 (private)";
   trace.push(hop("nat", "NAT gateway nat-0abc", true,
-    "Translates the private source to its Elastic IP. It currently lives in the " + natPlace + "; its own egress follows that subnet's route table."));
+    "Translates the instance's source address to the NAT gateway's own private IPv4 address; the internet gateway later maps that to the Elastic IP. It currently lives in the " + natPlace + "; its own egress follows that subnet's route table."));
   const egressLabel = config.natSubnet === "nat" ? NAT_TABLES.nat.label : NAT_TABLES.app.label + " (where the NAT gateway now sits)";
   const second = lookupRoute(config.routes[natTable], destination);
   if (!second) {
     trace.push(hop("route-nat", egressLabel, false, "No route matches " + destination + " after translation, so the NAT gateway has nowhere to send it."));
     return done();
   }
+  egressRoute = { table: natTable, ...second };
   trace.push(hop("route-nat", egressLabel, second.target === "igw-0edge" || second.target === "tgw-0central",
     second.target === "igw-0edge"
       ? "Best match " + second.destination + " sends the translated packet to igw-0edge."
       : second.target === "tgw-0central"
-        ? "Best match " + second.destination + " sends the translated packet to tgw-0central instead of the internet gateway."
+        ? "Best match " + second.destination + " sends the translated packet to tgw-0central instead of the internet gateway. It still carries the NAT gateway's private source address."
         : "Best match " + second.destination + " points back at nat-0abc itself. A public NAT gateway needs a route to an internet gateway, which makes its subnet public."));
   if (second.target === "tgw-0central") {
     trace.push(hop("tgw", "Transit gateway tgw-0central", false,
@@ -169,11 +171,20 @@ function runTrace(config, tableKey) {
     return done();
   }
   if (second.target !== "igw-0edge") return done();
-  trace.push(hop("igw", "Internet gateway igw-0edge", true, "Attached to the VPC; forwards traffic from the NAT gateway's Elastic IP."));
+  trace.push(hop("igw", "Internet gateway igw-0edge", true, "Attached to the VPC; maps the NAT gateway's private source address to its Elastic IP and forwards the packet."));
   trace.push(hop("dest", "HTTPS endpoint " + destination + ":" + port, true, "Synthetic endpoint reached. No real packets were sent."));
   return done();
 }
 
+function egressScope(state, route) {
+  const table = NAT_TABLES[route.table].label;
+  if (parseCidr(route.destination).prefix === 0) {
+    return "The " + table + " matches " + route.destination + " -> igw-0edge, so every internet destination without a more specific route uses the internet gateway.";
+  }
+  const dflt = state.routes[route.table].find(r => r.destination === "0.0.0.0/0");
+  return "The " + table + " matches only " + route.destination + " -> igw-0edge. Other internet destinations " +
+    (dflt ? "still follow 0.0.0.0/0 -> " + dflt.target + "." : "have no route and are dropped.");
+}
 export function testNatMission(state) {
   assertState(state);
   const app = runTrace(state, "app");
@@ -188,7 +199,7 @@ export function testNatMission(state) {
     : serviceOk ? "HTTPS REACHABLE · SHARED SUBNET STILL FAILING"
     : "HTTPS TIMEOUT · DROPPED AT " + where.toUpperCase();
   const explanation = healthy
-    ? "The probe now leaves the app subnet through nat-0abc, and the NAT subnet's default route reaches igw-0edge. The second private subnet that shares the NAT gateway also passes. Other layers (NACL return ports, DNS, TGW route tables) are not simulated."
+    ? "The probe now leaves the app subnet through nat-0abc. " + egressScope(state, app.egressRoute) + " The second private subnet that shares the NAT gateway also passes. Other layers (NACL return ports, DNS, TGW route tables) are not simulated."
     : serviceOk && risk
       ? "The path works, but the app security group now allows all outbound traffic. That change was not needed for routing. Undo it and keep the TCP 443 rule."
       : serviceOk
