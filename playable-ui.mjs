@@ -3,6 +3,9 @@ import { IAM_ACTIONS, IAM_INSPECTIONS, newIamMission, inspectIamMission,
   changeIamMission, undoIamMission, testIamMission } from "./data/iam-mission.mjs";
 import { NAT_ACTIONS, NAT_INSPECTIONS, NAT_TABLES, NAT_TARGETS, NAT_PROBE, NAT_REFERENCES, newNatMission, inspectNatMission,
   changeNatMission, previewNatChange, undoNatMission, testNatMission } from "./data/nat-mission.mjs";
+import { DNS_EVIDENCE, DNS_CLAIMS, DNS_HYPOTHESES, DNS_LABELS, DNS_ACTIONS, DNS_CONTROL_LABELS, DNS_AXIS, DNS_WINDOW,
+  DNS_LATER_EVENT, DNS_REFERENCES, newDnsMission, collectDnsEvidence, readDnsEvidence, dnsLaneView, setDnsHypothesis,
+  classifyDnsClaim, assessDnsFinding, hintDnsMission, changeDnsMission, undoDnsMission, testDnsMission } from "./data/dns-mission.mjs";
 const $ = id => document.getElementById(id);
 let incidentId = null;
 let state = null;
@@ -12,6 +15,9 @@ let notifyTest = null;
 let iamState = null;
 let natState = null;
 let natDrafts = {};
+let dnsState = null;
+let dnsLive = null;
+let dnsBody = null;
 
 function node(tag, className, text) {
   const el = document.createElement(tag);
@@ -39,6 +45,12 @@ function status() {
     }
   }
   for (const [i,el] of [...$("playable-topology").children].entries()) {
+    if (dnsState) {
+      const row = result?.coverage?.find(item => item.key === ({ resolver: "resolver", logs: "resolver", host: "process" })[el.dataset.hop]);
+      el.classList.toggle("is-reachable", Boolean(row?.ok));
+      el.classList.toggle("is-dropped", Boolean(row && !row.ok));
+      continue;
+    }
     if (natState) {
       if (!el.dataset.hop) continue;
       const entry = result?.trace?.find(item => item.key === el.dataset.hop);
@@ -362,6 +374,278 @@ function natRender(focusKey = null) {
   }
 }
 
+
+/* ---------- DNS evidence timeline ---------- */
+const dnsKey = (...parts) => parts.join("|");
+const toMinutes = hhmm => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
+const axisFrom = toMinutes(DNS_AXIS.from), axisSpan = toMinutes(DNS_AXIS.to) - axisFrom;
+const pct = hhmm => ((toMinutes(hhmm) - axisFrom) / axisSpan * 100).toFixed(2) + "%";
+const widthPct = (from, to) => ((toMinutes(to) - toMinutes(from)) / axisSpan * 100).toFixed(2) + "%";
+const STATUS_LABEL = { direct: "RECORDED", uncorroborated: "UNCORROBORATED", corroborated: "CORROBORATED", discounted: "DISCOUNTED" };
+
+function dnsGroup(title, ...children) {
+  const section = document.createElement("section");
+  section.className = "iam-mission-group";
+  section.append(node("h5", "", title), ...children);
+  return section;
+}
+function dnsToggle(textContent, pressed, focus, onClick, extra = "") {
+  const button = node("button", "dns-toggle" + (extra ? " " + extra : ""), textContent);
+  button.type = "button";
+  button.setAttribute("aria-pressed", String(pressed));
+  button.dataset.focus = focus;
+  button.addEventListener("click", onClick);
+  return button;
+}
+function dnsTimeline() {
+  const lanes = dnsLaneView(dnsState).filter(lane => lane.revealed);
+  const section = document.createElement("section");
+  section.className = "dns-timeline";
+  section.setAttribute("aria-labelledby", "dns-timeline-heading");
+  const heading = node("h6", "", "COVERAGE TIMELINE / UTC");
+  heading.id = "dns-timeline-heading";
+  section.append(heading, node("p", "nat-place", "Suspected activity " + DNS_WINDOW.from + "-" + DNS_WINDOW.to +
+    ". The analyst asked for hostnames and the issuing process at " + DNS_WINDOW.requested + ". Sources appear here as you query them."));
+  const chart = document.createElement("div");
+  chart.className = "dns-chart";
+  chart.setAttribute("aria-hidden", "true");
+  const axis = document.createElement("div");
+  axis.className = "dns-axis";
+  for (const tick of ["12:00", "13:00", "14:00"]) {
+    const el = node("span", "", tick);
+    el.style.left = pct(tick);
+    axis.append(el);
+  }
+  chart.append(node("span", "dns-lane-label", ""), axis);
+  for (const lane of lanes) {
+    const track = document.createElement("div");
+    track.className = "dns-track";
+    if (!lane.spans.length) track.classList.add("is-empty");
+    for (const [from, to] of lane.spans) {
+      const span = document.createElement("span");
+      span.className = "dns-span";
+      span.style.left = pct(from);
+      span.style.width = widthPct(from, to);
+      track.append(span);
+    }
+    chart.append(node("span", "dns-lane-label", lane.label), track);
+  }
+  const overlay = document.createElement("div");
+  overlay.className = "dns-overlay";
+  const band = document.createElement("span");
+  band.className = "dns-band";
+  band.style.left = pct(DNS_WINDOW.from);
+  band.style.width = widthPct(DNS_WINDOW.from, DNS_WINDOW.to);
+  const request = document.createElement("span");
+  request.className = "dns-request";
+  request.style.left = pct(DNS_WINDOW.requested);
+  overlay.append(band, request);
+  chart.style.setProperty("--rows", String(lanes.length + 1));
+  chart.append(overlay);
+  section.append(chart);
+  const list = document.createElement("ul");
+  list.className = "nat-notes";
+  list.setAttribute("aria-label", "Source coverage in text");
+  list.append(node("li", "", "Suspected window " + DNS_WINDOW.from + "-" + DNS_WINDOW.to + " UTC (shaded). Request at " + DNS_WINDOW.requested + " UTC (line)."));
+  for (const lane of lanes) {
+    const spans = lane.spans.length ? lane.spans.map(([a, b]) => a + "-" + b).join(", ") : "no collection";
+    list.append(node("li", "", lane.label + ": " + spans + (lane.showNote ? " (" + lane.note + ")" : "")));
+  }
+  section.append(list);
+  return section;
+}
+function dnsRender(focusKey = null) {
+  const host = $("playable-controls");
+  if (!dnsLive || dnsLive.parentNode !== host) {
+    host.replaceChildren();
+    host.classList.remove("is-iam-mission", "is-nat-mission");
+    host.classList.add("is-dns-mission");
+    dnsLive = node("p", "iam-mission-finding dns-live", "");
+    dnsLive.setAttribute("role", "status");
+    dnsLive.setAttribute("aria-live", "polite");
+    dnsBody = document.createElement("div");
+    dnsBody.className = "dns-body";
+    host.append(dnsBody, dnsLive);
+  }
+  const body = document.createElement("div");
+  body.className = "dns-body";
+  host.replaceChild(body, dnsBody);
+  dnsBody = body;
+
+  const afterAction = (next, key) => {
+    dnsState = next;
+    result = dnsState.lastTest;
+    status();
+    notifyTest?.(result);
+    dnsRender(key);
+  };
+  body.append(node("p", "iam-mission-context",
+    "ALERT: An analyst says there were no DNS requests from 12:00 to 12:20 UTC, but a detection lead disagrees. Query sources onto the timeline, test what each could really see, state what you can and cannot claim, then improve FUTURE visibility and RUN TEST. Old history cannot be recovered."));
+
+  /* 01 evidence */
+  const evidenceChoices = node("div", "iam-mission-choices dns-queries", "");
+  for (const item of DNS_EVIDENCE) {
+    const button = dnsToggle("", dnsState.evidence.includes(item.id), dnsKey("ev", item.id), () =>
+      afterAction(collectDnsEvidence(dnsState, item.id), dnsKey("ev", item.id)), "iam-mission-action");
+    button.dataset.evidence = item.id;
+    button.append(node("strong", "", item.label), node("small", "", item.source));
+    evidenceChoices.append(button);
+  }
+  const cards = document.createElement("ol");
+  cards.className = "dns-cards";
+  cards.setAttribute("aria-label", "Evidence on your timeline, in the order collected");
+  for (const id of dnsState.evidence) {
+    const e = readDnsEvidence(dnsState, id);
+    const li = document.createElement("li");
+    li.className = "dns-card is-" + e.status;
+    li.dataset.card = id;
+    const head = document.createElement("div");
+    head.className = "dns-card-head";
+    head.append(node("strong", "", e.source), node("span", "dns-status", STATUS_LABEL[e.status]));
+    li.append(head, node("span", "dns-card-label", e.label + (e.window ? " · " + e.window[0] + "-" + e.window[1] + " UTC" : "")), node("span", "", e.reading));
+    if (e.note) li.append(node("span", "dns-note", e.note));
+    cards.append(li);
+  }
+  const emptyCards = node("p", "nat-empty", "Nothing on the timeline yet. Pick a source above to query it. Pressing a source again reopens it.");
+  body.append(dnsGroup("01 / QUERY SOURCES ONTO THE TIMELINE", evidenceChoices, dnsTimeline(), dnsState.evidence.length ? cards : emptyCards));
+
+  /* 02 hypothesis and claims */
+  const finding = assessDnsFinding(dnsState);
+  const hypChoices = node("div", "dns-hyps", "");
+  hypChoices.setAttribute("role", "group");
+  hypChoices.setAttribute("aria-label", "Current hypothesis");
+  for (const h of DNS_HYPOTHESES) {
+    const button = dnsToggle(h.label, dnsState.hypothesis === h.id, dnsKey("hyp", h.id), () =>
+      afterAction(setDnsHypothesis(dnsState, h.id), dnsKey("hyp", h.id)));
+    button.dataset.hypothesis = h.id;
+    hypChoices.append(button);
+  }
+  const assess = node("p", "dns-assess is-" + finding.hypothesis.verdict, finding.hypothesis.text);
+  const claimList = document.createElement("ul");
+  claimList.className = "dns-claims";
+  for (const claim of DNS_CLAIMS) {
+    const review = finding.claims.find(c => c.id === claim.id);
+    const li = document.createElement("li");
+    li.className = "dns-claim is-" + review.verdict;
+    const groupId = "dns-claim-" + claim.id;
+    const text = node("span", "dns-claim-text", claim.text);
+    text.id = groupId;
+    const choices = node("div", "dns-labels", "");
+    choices.setAttribute("role", "group");
+    choices.setAttribute("aria-labelledby", groupId);
+    for (const label of DNS_LABELS) {
+      const button = dnsToggle(label.toUpperCase(), dnsState.claims[claim.id] === label, dnsKey("claim", claim.id, label), () =>
+        afterAction(classifyDnsClaim(dnsState, claim.id, dnsState.claims[claim.id] === label ? null : label), dnsKey("claim", claim.id, label)));
+      button.dataset.claim = claim.id;
+      button.dataset.label = label;
+      choices.append(button);
+    }
+    li.append(text, choices);
+    if (review.verdict !== "unset") li.append(node("span", "dns-review", review.text));
+    claimList.append(li);
+  }
+  const hint = node("button", "outline-button", "NEED A HINT? (" + dnsState.hints + " USED)");
+  hint.type = "button";
+  hint.dataset.focus = "hint";
+  hint.addEventListener("click", () => afterAction(hintDnsMission(dnsState), "hint"));
+  body.append(dnsGroup("02 / HYPOTHESIS AND FINDING", node("p", "nat-place", "Pick what you believe so far. You can revise it as evidence arrives. KNOWN needs a source that recorded it; UNKNOWN means nothing that covered the window can say; UNSUPPORTED means the evidence does not back the claim."),
+    hypChoices, assess, claimList, hint));
+
+  /* 03 future telemetry */
+  const rows = document.createElement("ul");
+  rows.className = "dns-controls";
+  for (const control of Object.keys(DNS_CONTROL_LABELS)) {
+    const li = document.createElement("li");
+    li.className = "dns-control";
+    const name = node("span", "dns-control-name", DNS_CONTROL_LABELS[control] + ": " + dnsState.config[control].toUpperCase());
+    const group = node("div", "dns-labels", "");
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", DNS_CONTROL_LABELS[control]);
+    for (const option of DNS_ACTIONS.filter(a => a.control === control)) {
+      const button = dnsToggle(option.label, dnsState.config[control] === option.value, dnsKey("cfg", option.id), () =>
+        afterAction(changeDnsMission(dnsState, option.action), dnsKey("cfg", option.id)), option.unsafe ? "is-unsafe" : "");
+      button.dataset.action = option.id;
+      button.title = option.detail;
+      group.append(button);
+    }
+    li.append(name, group);
+    rows.append(li);
+  }
+  const backfill = DNS_ACTIONS.find(a => a.id === "BACKFILL");
+  const fill = node("button", "iam-mission-action is-unsafe", "");
+  fill.type = "button";
+  fill.dataset.action = backfill.id;
+  fill.dataset.focus = dnsKey("cfg", backfill.id);
+  fill.append(node("strong", "", backfill.label), node("small", "", backfill.detail));
+  fill.addEventListener("click", () => afterAction(changeDnsMission(dnsState, backfill.action), dnsKey("cfg", backfill.id)));
+  body.append(dnsGroup("03 / FUTURE TELEMETRY (LATER EVENTS ONLY)",
+    node("p", "nat-place", "These settings only change what a later event records. They never change the 12:00-12:20 window."), rows, fill));
+
+  const undo = node("button", "outline-button iam-mission-undo", "↶ UNDO LAST CONFIG CHANGE");
+  undo.type = "button";
+  undo.disabled = dnsState.history.length === 0;
+  undo.dataset.focus = "undo";
+  undo.dataset.undo = "last";
+  undo.addEventListener("click", () => {
+    dnsState = undoDnsMission(dnsState);
+    result = dnsState.lastTest;
+    status();
+    notifyTest?.(result);
+    dnsRender("undo");
+  });
+  body.append(undo);
+
+  /* 04 later event */
+  const later = document.createElement("section");
+  later.className = "nat-trace dns-later";
+  later.setAttribute("aria-labelledby", "dns-later-heading");
+  const laterHeading = node("h5", "", "LATER EVENT " + DNS_LATER_EVENT.label + " / " + DNS_LATER_EVENT.lookups + " " + DNS_LATER_EVENT.queryType + " LOOKUPS OF " + DNS_LATER_EVENT.distinctNames + " NAMES UNDER " + DNS_LATER_EVENT.suffix);
+  laterHeading.id = "dns-later-heading";
+  later.append(laterHeading);
+  if (dnsState.lastTest) {
+    const list = document.createElement("ol");
+    for (const row of dnsState.lastTest.coverage) {
+      const li = document.createElement("li");
+      li.className = row.ok ? "is-pass" : "is-drop";
+      li.append(node("strong", "", (row.ok ? "COVERED" : "GAP") + " · " + row.label), node("span", "", row.value));
+      list.append(li);
+    }
+    const refs = node("p", "nat-refs", "Verify with AWS: ");
+    for (const ref of DNS_REFERENCES) {
+      const a = node("a", "", ref.label);
+      a.href = ref.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      refs.append(a, document.createTextNode(" "));
+    }
+    later.append(list, node("p", "nat-shared", "Finding review: " + dnsState.lastTest.finding.hypothesis.text), refs);
+  } else {
+    later.append(node("p", "nat-empty", dnsState.journal.some(item => item.kind === "test")
+      ? "The last test no longer matches your timeline, finding or settings. Run the test again."
+      : "No later event yet. Press RUN TEST to simulate it with today's settings and check your finding."));
+  }
+  body.append(later);
+
+  const log = document.createElement("section");
+  log.className = "iam-mission-history";
+  log.append(node("h5", "", "ACTION HISTORY / LATEST FIRST"));
+  const history = document.createElement("ol");
+  for (const item of [...dnsState.journal].reverse().slice(0, 12)) {
+    history.append(node("li", "", String(item.sequence).padStart(2, "0") + " · " + item.description));
+  }
+  if (!history.children.length) history.append(node("li", "", "No actions yet. Your first test is available now."));
+  log.append(history);
+  body.append(log);
+
+  dnsLive.textContent = dnsState.finding || "Start by querying a source. All operations are simulated and nothing is sent.";
+
+  if (focusKey) {
+    const all = [...host.querySelectorAll("[data-focus]")];
+    let target = all.find(el => el.dataset.focus === focusKey);
+    if (!target || target.disabled) target = all.find(el => !el.disabled && el.dataset.focus === "hint");
+    if (!target || target.disabled) target = $("playable-test");
+    target.focus({ preventScroll: true });
+  }
+}
+
 export function setupPlayableLab(onTest) {
   notifyTest = onTest;
   $("playable-test").addEventListener("click", () => {
@@ -371,6 +655,11 @@ export function setupPlayableLab(onTest) {
       iamState = tested.state;
       result = tested.result;
       renderIamControls();
+    } else if (dnsState) {
+      const tested = testDnsMission(dnsState);
+      dnsState = tested.state;
+      result = tested.result;
+      dnsRender();
     } else if (natState) {
       const tested = testNatMission(natState);
       natState = tested.state;
@@ -399,13 +688,22 @@ export function openPlayableLab(id) {
   iamState = id === "iam-boundary-v1" ? newIamMission() : null;
   natState = id === "private-nat-v1" ? newNatMission() : null;
   natDrafts = {};
+  dnsState = id === "resolver-blindspot-v1" ? newDnsMission() : null;
+  dnsLive = null;
+  dnsBody = null;
   result = null;
   attempts = 0;
   const scenario = SANDBOX_SCENARIOS[id];
   $("playable-title").textContent = scenario.title;
   $("playable-task").textContent = scenario.task;
   $("playable-topology").replaceChildren();
-  if (natState) {
+  if (dnsState) {
+    for (const [key,label] of [["workload","Workload"],["resolver","VPC resolver"],["logs","Query logs"],["host","Host attribution"]]) {
+      const el = node("span","playable-node",label);
+      el.dataset.hop = key;
+      $("playable-topology").append(el);
+    }
+  } else if (natState) {
     const hops = [["instance","Private instance"],["route-app","App route table"],["nat","NAT gateway"],
       ["route-nat","NAT subnet route table"],["igw","Internet gateway"],["dest","HTTPS endpoint"],["tgw","Transit gateway (no internet path)"]];
     for (const [key,label] of hops) {
@@ -420,7 +718,12 @@ export function openPlayableLab(id) {
   }
   }
   $("playable-controls").replaceChildren();
-  $("playable-controls").classList.remove("is-nat-mission");
+  $("playable-controls").classList.remove("is-nat-mission", "is-dns-mission");
+  if (dnsState) {
+    dnsRender();
+    status();
+    return;
+  }
   if (iamState) {
     renderIamControls();
     status();
