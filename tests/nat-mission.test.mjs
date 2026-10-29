@@ -254,3 +254,27 @@ test("CIDR parsing and bad inputs fail closed", () => {
   assert.throws(() => testNatMission({ ...newNatMission(), version: 999 }), /invalid_nat_mission_state/);
   assert.throws(() => testNatMission({ ...newNatMission(), natSubnet: "elsewhere" }), /invalid_nat_mission_state/);
 });
+
+test("translation is described at the correct hop: NAT private address, IGW maps to the Elastic IP", () => {
+  const r = result(run(newNatMission(), fixNat));
+  const nat = r.trace.find(h => h.key === "nat").detail;
+  assert.match(nat, /NAT gateway's own private IPv4 address/);
+  assert.match(nat, /internet gateway later maps that to the Elastic IP/);
+  assert.doesNotMatch(nat, /to its Elastic IP/);
+  assert.match(r.trace.find(h => h.key === "igw").detail, /maps the NAT gateway's private source address to its Elastic IP/);
+  const viaTgw = result(newNatMission()).trace.find(h => h.key === "route-nat").detail;
+  assert.match(viaTgw, /still carries the NAT gateway's private source address/);
+});
+
+test("success explanation is derived from the matched route and states its scope", () => {
+  const broad = result(run(newNatMission(), fixNat));
+  assert.match(broad.explanation, /matches 0\.0\.0\.0\/0 -> igw-0edge, so every internet destination/);
+  const narrow = result(run(newNatMission(), { type: "ADD_ROUTE", table: "nat", destination: "203.0.113.0/24", target: "igw-0edge" }));
+  assert.equal(narrow.healthy, true);
+  assert.match(narrow.explanation, /matches only 203\.0\.113\.0\/24 -> igw-0edge/);
+  assert.match(narrow.explanation, /still follow 0\.0\.0\.0\/0 -> tgw-0central/);
+  assert.doesNotMatch(narrow.explanation, /default route reaches/);
+  const noDefault = result(run(newNatMission(), { type: "REMOVE_ROUTE", table: "nat", destination: "0.0.0.0/0" },
+    { type: "ADD_ROUTE", table: "nat", destination: "203.0.113.0/24", target: "igw-0edge" }));
+  assert.match(noDefault.explanation, /have no route and are dropped/);
+});
