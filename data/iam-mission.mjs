@@ -27,10 +27,11 @@ function assertState(state) {
     throw new Error("invalid_iam_mission_state");
   }
 }
-function withEvent(state, kind, description, details = {}) {
+/** `op` is the replayable input that produced the event (see data/mission-feedback.mjs). */
+function withEvent(state, kind, description, details = {}, op = null) {
   const sequence = state.sequence + 1;
   return { ...state, ...details, sequence,
-    journal: [...state.journal, { sequence, kind, description }] };
+    journal: [...state.journal, { sequence, kind, description, op }] };
 }
 export function newIamMission() {
   return { version: IAM_MISSION_VERSION, identityAllow: true, boundary: "missing",
@@ -52,7 +53,7 @@ export function inspectIamMission(state, id) {
           : "Permissions boundary: broad S3 object read permissions (unnecessarily wide).";
   return withEvent(state, "inspect", "Inspected " + id.toLowerCase(), {
     inspections: [...new Set([...state.inspections, id])], finding
-  });
+  }, { t: "inspect", id });
 }
 export function changeIamMission(state, action) {
   assertState(state);
@@ -65,24 +66,24 @@ export function changeIamMission(state, action) {
   const changed = next.boundary !== state.boundary || next.identityAllow !== state.identityAllow;
   if (!changed) return withEvent(state, "noop", "No configuration change: " + action, {
     finding: "That setting was already in place. Your last test is still valid."
-  });
+  }, { t: "change", id: action });
   return withEvent(state, "change", "Applied " + action + " (virtual only)", {
     ...next, history: [...state.history, {
       identityAllow: state.identityAllow, boundary: state.boundary, action
     }], lastTest: null, finding: "Configuration changed. Run the synthetic S3 read test to see the consequence."
-  });
+  }, { t: "change", id: action });
 }
 export function undoIamMission(state) {
   assertState(state);
   if (!state.history.length) return withEvent(state, "noop", "Nothing to undo", {
     finding: "No configuration change to undo."
-  });
+  }, { t: "undo" });
   const previous = state.history[state.history.length - 1];
   return withEvent(state, "undo", "Undid " + previous.action + " (virtual only)", {
     identityAllow: previous.identityAllow, boundary: previous.boundary,
     history: state.history.slice(0, -1), lastTest: null,
     finding: "Last configuration change reversed. Retest to verify the current state."
-  });
+  }, { t: "undo" });
 }
 export function testIamMission(state) {
   assertState(state);
@@ -101,6 +102,6 @@ export function testIamMission(state) {
       "; boundary scope: " + state.boundary + "; policy risk: " + (risk ? "HIGH" : "NONE IN MODEL")
   };
   const updated = withEvent(state, "test",
-    "S3 read test: " + result.status, { lastTest: result, finding: result.evidence });
+    "S3 read test: " + result.status, { lastTest: result, finding: result.evidence }, { t: "test" });
   return { state: updated, result };
 }

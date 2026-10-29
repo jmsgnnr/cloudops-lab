@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./mission-workspace.css">
   <link rel="stylesheet" href="./playable-workspace.css">
   <link rel="stylesheet" href="./simple-missions.css">
+  <link rel="stylesheet" href="./mission-review.css">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <script type="module" src="./app.mjs"></script>
 </head>
@@ -214,9 +215,27 @@
             <code id="playable-evidence"></code>
           </div>
         </div>
+        <section id="mission-review" class="mission-review" aria-labelledby="mission-review-heading">
+          <div id="mission-complete" class="mission-complete" hidden>
+            <span class="section-number">MISSION COMPLETE</span>
+            <strong id="mission-complete-outcome"></strong>
+            <p>Service restored and verified by a test in the synthetic model. Everything below is optional.</p>
+            <div class="mission-complete-actions">
+              <button id="mission-next" class="primary-button" type="button">NEXT MISSION →</button>
+              <button id="mission-review-open" class="outline-button" type="button">REVIEW WHAT HAPPENED</button>
+              <button id="mission-again" class="outline-button" type="button">PLAY THIS MISSION AGAIN</button>
+            </div>
+          </div>
+          <div class="review-bar">
+            <h4 id="mission-review-heading">Mission debrief <span>(optional)</span></h4>
+            <p>See which evidence you gathered or skipped, what each change did, and step through your actions. Built only from what you did. It does not stop you finishing.</p>
+            <button id="review-toggle" class="outline-button" type="button" aria-expanded="false" aria-controls="review-panel">OPEN MISSION DEBRIEF (OPTIONAL)</button>
+          </div>
+          <div id="review-panel" class="review-panel" role="region" hidden></div>
+        </section>
         <div class="mission-navigation simple-workbench-nav">
           <button id="mission-back-brief" class="outline-button" type="button">← THE PROBLEM</button>
-          <button id="mission-to-report" class="outline-button" type="button" disabled>OPTIONAL DEBRIEF →</button>
+          <button id="mission-to-report" class="outline-button" type="button" disabled>OPTIONAL NOTES →</button>
         </div>
         <details id="mission-clues" class="simple-clues">
           <summary>Need a clue? <span>Three quick checks explained in plain English</span><span id="clue-progress">0 / 3</span></summary>
@@ -250,6 +269,7 @@
             <span id="mission-report-evidence-count">0 CLUES OPENED</span>
             <button id="incident-attach" class="outline-button" type="button" disabled>ADD CLUES</button>
             <button id="mission-use-decision" class="outline-button" type="button" disabled>ADD TEST RESULT</button>
+            <button id="mission-use-review" class="outline-button" type="button" disabled>ADD MISSION DEBRIEF</button>
           </div>
           <div id="incident-report-progress" class="incident-report-progress" aria-live="polite">STEP 1 OF 5</div>
           <div id="incident-fields"></div>
