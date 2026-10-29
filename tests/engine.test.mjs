@@ -6,6 +6,8 @@ import {
   selectQuestions,
   shuffleQuestionChoices,
   readProgress,
+  readProgressWithReport,
+  isValidAttempt,
   storeProgress,
   recordAttempt,
   emptyProgress,
@@ -168,6 +170,54 @@ describe("progress storage", () => {
     assert.deepEqual(loaded.bookmarks, ["scs-01", "scs-02"]);
     assert.equal(loaded.attempts.length, 30);
     assert.deepEqual(loaded.attempts, attempts.slice(-30));
+  });
+
+  it("drops invalid attempt records, keeps valid ones, and reports the count", () => {
+    const good = { track: "practitioner", mode: "practice", correct: 7, total: 10, percent: 70, finishedAt: "2026-01-01T00:00:00.000Z", byDomain: { cloud: { correct: 7, total: 10 } } };
+    const legacy = { track: "practitioner", mode: "exam", correct: 1, total: 2, percent: 50, finishedAt: "2026-01-02" };
+    const bad = [
+      null, 7, "x", [], true,
+      {},
+      { ...good, track: undefined },
+      { ...good, track: "nope" },
+      { ...good, mode: 3 },
+      { ...good, mode: "" },
+      { ...good, correct: "7" },
+      { ...good, total: -1 },
+      { ...good, percent: 150 },
+      { ...good, percent: -5 },
+      { ...good, percent: Number.NaN },
+      { ...good, percent: "70" },
+      { ...good, finishedAt: 5 },
+      { ...good, byDomain: [] },
+      { ...good, byDomain: { cloud: null } },
+      { ...good, byDomain: { cloud: { correct: -1, total: 2 } } }
+    ];
+    const storage = {
+      getItem: () => JSON.stringify({ version: 1, attempts: [bad[0], good, ...bad.slice(1), legacy], missed: ["clf-01"], bookmarks: ["scs-01"] }),
+      setItem: () => {}
+    };
+    const { progress, droppedAttempts } = readProgressWithReport(storage);
+    assert.deepEqual(progress.attempts, [good, legacy]);
+    assert.deepEqual(progress.missed, ["clf-01"]);
+    assert.deepEqual(progress.bookmarks, ["scs-01"]);
+    assert.equal(droppedAttempts, bad.length);
+    assert.deepEqual(readProgress(storage), progress);
+  });
+
+  it("loads the issue 18 payload with null attempts without throwing", () => {
+    const storage = { getItem: () => '{"version":1,"attempts":[null],"missed":[],"bookmarks":[]}', setItem: () => {} };
+    const { progress, droppedAttempts } = readProgressWithReport(storage);
+    assert.deepEqual(progress, emptyProgress());
+    assert.equal(droppedAttempts, 1);
+  });
+
+  it("reports zero dropped attempts for clean, empty, or unversioned storage", () => {
+    const attempt = { track: "practitioner", mode: "practice", correct: 1, total: 1, percent: 100, finishedAt: "x" };
+    assert.equal(isValidAttempt(attempt), true);
+    for (const raw of [null, "{bad", JSON.stringify({ version: 1, attempts: [attempt] })]) {
+      assert.equal(readProgressWithReport({ getItem: () => raw }).droppedAttempts, 0);
+    }
   });
 
   it("replaces non-array attempt, missed, and bookmark fields", () => {

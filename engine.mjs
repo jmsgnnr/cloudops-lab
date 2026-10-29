@@ -70,18 +70,43 @@ export function selectQuestions(bank, { track, domain = "all", count = 10, misse
 
 export const STORAGE_KEY = "aws-cert-lab-progress-v1";
 export function emptyProgress() { return { version: 1, attempts: [], missed: [], bookmarks: [] }; }
-export function readProgress(storage) {
+const isCount = n => Number.isInteger(n) && n >= 0;
+const isPlainObject = v => v !== null && typeof v === "object" && !Array.isArray(v);
+/** True when a stored attempt matches the v1 attempt shape written by recordAttempt. */
+export function isValidAttempt(a) {
+  if (!isPlainObject(a)) return false;
+  if (typeof a.track !== "string" || !Object.hasOwn(TRACKS, a.track)) return false;
+  if (typeof a.mode !== "string" || !a.mode) return false;
+  if (!isCount(a.correct) || !isCount(a.total)) return false;
+  if (typeof a.percent !== "number" || !Number.isFinite(a.percent) || a.percent < 0 || a.percent > 100) return false;
+  if (typeof a.finishedAt !== "string") return false;
+  if (a.byDomain !== undefined) {
+    if (!isPlainObject(a.byDomain)) return false;
+    for (const d of Object.values(a.byDomain)) {
+      if (!isPlainObject(d) || !isCount(d.correct) || !isCount(d.total)) return false;
+    }
+  }
+  return true;
+}
+/** Like readProgress, but also reports how many stored attempt entries were dropped as invalid. */
+export function readProgressWithReport(storage) {
   try {
     const parsed = JSON.parse(storage.getItem(STORAGE_KEY));
-    if (parsed?.version !== 1) return emptyProgress();
+    if (parsed?.version !== 1) return { progress: emptyProgress(), droppedAttempts: 0 };
+    const stored = Array.isArray(parsed.attempts) ? parsed.attempts : [];
+    const valid = stored.filter(isValidAttempt);
     return {
-      version: 1,
-      attempts: Array.isArray(parsed.attempts) ? parsed.attempts.slice(-30) : [],
-      missed: Array.isArray(parsed.missed) ? parsed.missed.filter(x => typeof x === "string") : [],
-      bookmarks: Array.isArray(parsed.bookmarks) ? parsed.bookmarks.filter(x => typeof x === "string") : []
+      progress: {
+        version: 1,
+        attempts: valid.slice(-30),
+        missed: Array.isArray(parsed.missed) ? parsed.missed.filter(x => typeof x === "string") : [],
+        bookmarks: Array.isArray(parsed.bookmarks) ? parsed.bookmarks.filter(x => typeof x === "string") : []
+      },
+      droppedAttempts: stored.length - valid.length
     };
-  } catch { return emptyProgress(); }
+  } catch { return { progress: emptyProgress(), droppedAttempts: 0 }; }
 }
+export function readProgress(storage) { return readProgressWithReport(storage).progress; }
 export function storeProgress(storage, progress) {
   try { storage.setItem(STORAGE_KEY, JSON.stringify(progress)); return true; } catch { return false; }
 }

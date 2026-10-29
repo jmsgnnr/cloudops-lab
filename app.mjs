@@ -6,7 +6,7 @@ import {
   selectQuestions,
   scoreQuiz,
   evaluate,
-  readProgress,
+  readProgressWithReport,
   storeProgress,
   recordAttempt,
   emptyProgress,
@@ -26,6 +26,7 @@ const countSelect = $("count-select");
 const focusSelect = $("focus-select");
 const sessionForm = $("session-form");
 const sessionHint = $("session-hint");
+const recoveryNotice = $("progress-recovery");
 const guideIntro = $("guide-intro");
 const domainGrid = $("domain-grid");
 const officialGuide = $("official-guide");
@@ -58,6 +59,7 @@ const againBtn = $("again-btn");
 
 let storage = null;
 let progress = emptyProgress();
+let droppedAttempts = 0;
 let currentTrack = "practitioner";
 
 /** @type {{ questions: import('./data/questions.mjs').QUESTIONS[number][], answers: Record<string, number[]>, index: number, mode: 'practice'|'exam', checked: Set<string>, deadline: number|null, timerId: number|null, lastResult: ReturnType<typeof scoreQuiz>|null }} */
@@ -647,7 +649,9 @@ function initStorageFallback() {
       }
     };
   }
-  progress = readProgress(storage);
+  const loaded = readProgressWithReport(storage);
+  progress = loaded.progress;
+  droppedAttempts = loaded.droppedAttempts;
 }
 
 function init() {
@@ -657,6 +661,13 @@ function init() {
     console.warn("Question bank validation:", validation.issues);
   }
   updateHeaderCounts();
+  if (droppedAttempts) {
+    const noun = droppedAttempts === 1 ? "entry" : "entries";
+    recoveryNotice.textContent = `Recovered saved progress: ${droppedAttempts} invalid session ${noun} ignored. Valid sessions, missed questions and bookmarks were kept. Export or reset is available below.`;
+    recoveryNotice.hidden = false;
+    const drawer = $("progress-details");
+    if (drawer) drawer.open = true;
+  }
   for (const [trackId, track] of Object.entries(TRACKS)) {
     const option = document.createElement("option");
     option.value = trackId;
