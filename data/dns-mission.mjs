@@ -14,7 +14,10 @@ export const DNS_MISSION_VERSION = 1;
 export const DNS_WINDOW = Object.freeze({ from: "12:00", to: "12:20", enabled: "13:00", requested: "14:00" });
 export const DNS_AXIS = Object.freeze({ from: "11:30", to: "14:30" });
 export const DNS_LATER_EVENT = Object.freeze({
-  label: "14:30-14:40 UTC", lookups: 8, distinctNames: 4, suffix: "tunnel-sink.example", queryType: "TXT"
+  label: "14:30-14:40 UTC", lookups: 8, distinctNames: 4, suffix: "tunnel-sink.example", queryType: "TXT",
+  /** Assumed record TTL in seconds and each lookup's offset from 14:30:00 (name index 0-3). Teaching assumptions, not measurements. */
+  ttl: 60,
+  schedule: Object.freeze([[0, 0], [1, 5], [2, 10], [3, 15], [0, 30], [1, 40], [2, 90], [3, 120]].map(([name, at]) => Object.freeze({ name, at })))
 });
 export const DNS_REFERENCES = Object.freeze([
   { label: "Resolver query logging", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-query-logs.html" },
@@ -66,7 +69,7 @@ export const DNS_EVIDENCE = Object.freeze([
     checks: [] },
   { id: "CACHE", source: "Cache behavior", kind: "scope", window: null,
     label: "Could cached answers hide lookups?",
-    reading: "Operating system and application caches answer repeat lookups for the record TTL without sending a new query to the VPC resolver, so a resolver log can undercount lookups. A cache cannot create records in a source that was not collecting.",
+    reading: "Operating system and application caches, and the VPC Resolver cache, answer repeat lookups within the record TTL. Repeated queries answered from the Resolver cache are not logged, so a resolver log undercounts lookups even if host caching is off. A cache cannot create records in a source that was not collecting.",
     checks: [] }
 ]);
 export const DNS_LANES = Object.freeze([
@@ -334,12 +337,23 @@ export function undoDnsMission(state) {
 export function simulateLaterEvent(config) {
   const e = DNS_LATER_EVENT;
   const resolverOn = config.resolverLogging === "on";
-  const reaching = config.hostCache === "on" ? e.distinctNames : e.lookups;
+  const hostFill = {}, resolverFill = {};
+  let reachedResolver = 0, logged = 0;
+  for (const { name, at } of e.schedule) {
+    if (config.hostCache === "on" && name in hostFill && at - hostFill[name] < e.ttl) continue;
+    if (config.hostCache === "on") hostFill[name] = at;
+    reachedResolver++;
+    if (name in resolverFill && at - resolverFill[name] < e.ttl) continue;
+    resolverFill[name] = at;
+    logged++;
+  }
+  const assumptions = " Assumes a " + e.ttl + " s record TTL and lookups at +" + e.schedule.map(s => s.at).join(", +") +
+    " s: repeats inside the TTL are answered from a cache (the host cache, then the VPC Resolver cache) and are not logged.";
   const hostOn = config.hostTelemetry === "on";
   const rows = [
     { key: "resolver", label: "Resolver query logs", ok: resolverOn,
-      value: resolverOn ? reaching + " of " + e.lookups + " lookups logged, " + e.distinctNames + " of " + e.distinctNames + " names, with the source instance" +
-        (config.hostCache === "on" ? ". The host cache answered the repeats before they reached the resolver." : ".")
+      value: resolverOn ? logged + " of " + e.lookups + " lookups logged, " + e.distinctNames + " of " + e.distinctNames + " names, with the source instance. " +
+        reachedResolver + " lookups reached the resolver and " + (reachedResolver - logged) + " of those were answered from the Resolver cache." + assumptions
         : "0 records. Logging is disassociated, so this event is a new blind spot." },
     { key: "process", label: "Process attribution", ok: hostOn,
       value: hostOn ? "Host telemetry links " + e.lookups + " of " + e.lookups + " lookups to a process. Resolver logs alone cannot name a process."
@@ -350,11 +364,11 @@ export function simulateLaterEvent(config) {
       value: config.packetCapture === "all" ? "Names visible on every instance's wire traffic, with no process link and a large privacy and cost footprint." : "Off." },
     { key: "past", label: "Past window 12:00-12:20", ok: false, value: "Unchanged. Still unknown." }
   ];
-  return { rows, resolverOn, hostOn, risk: config.packetCapture === "all" };
+  return { rows, resolverOn, hostOn, logged, reachedResolver, risk: config.packetCapture === "all" };
 }
 const SETTING_NOTES = [
   [c => c.flowLogs === "detailed", "Extra Flow Logs fields do not change what Flow Logs exclude, so DNS to the Amazon-provided resolver is still invisible."],
-  [c => c.hostCache === "off", "Turning off the host cache is not needed to learn the names; it only raises the logged count from 4 to 8 lookups."],
+  [c => c.hostCache === "off", "Turning off the host cache is not needed to learn the names, and it does not make the log complete: the VPC Resolver has its own cache, so repeats inside the TTL are still answered there and not logged. Treat logged counts as a lower bound."],
   [c => c.resolverLogging === "off", "Disassociating Resolver query logging removed the one source that records which names the VPC resolver was asked."]
 ];
 export function testDnsMission(state) {
