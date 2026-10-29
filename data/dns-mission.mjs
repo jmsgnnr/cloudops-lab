@@ -220,14 +220,14 @@ export function assessDnsHypothesis(state) {
   }
   if (h === "H_NONE") {
     return exculpating
-      ? { id: h, verdict: "contradicted", text: "Contradicted by " + exculpating + ": the sources showing nothing could not have recorded these queries. An empty result is not proof of no activity." }
+      ? { id: h, verdict: "unsupported", text: "Unsupported. " + exculpating + " shows the sources reporting nothing could not have recorded these queries. That neither establishes that queries occurred nor excludes it, so an empty result is not proof of no activity." }
       : { id: h, verdict: "premature", text: has(state, "FLOW_ZERO") || has(state, "RESOLVER_ROWS")
           ? "Resting on zero-row results whose scope you have not checked. Ask what each source could have seen before treating silence as absence."
           : "Nothing on your timeline supports this yet." };
   }
   if (h === "H_CACHE") {
     return exculpating
-      ? { id: h, verdict: "contradicted", text: "Contradicted by " + exculpating + ": a cache cannot remove records from a source that could not see them or was not collecting." }
+      ? { id: h, verdict: "unsupported", text: "Unsupported. " + exculpating + " already explains the silence: a source that could not see these queries, or was not collecting, has nothing for a cache to hide. That neither establishes that cached queries occurred nor excludes it." }
       : { id: h, verdict: "premature", text: has(state, "CACHE")
           ? "Caching can reduce what a resolver log counts, but check whether any source covering the window was collecting."
           : "Nothing on your timeline supports this yet." };

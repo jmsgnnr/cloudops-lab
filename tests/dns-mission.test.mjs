@@ -88,15 +88,16 @@ test("plausible wrong inference gets corrective evidence, not a generic failure"
   assert.doesNotMatch(a.text, /Amazon-provided|13:00/, "does not reveal evidence the player has not collected");
   s = collect(s, "FLOW_SCOPE");
   a = assessDnsFinding(s).hypothesis;
-  assert.equal(a.verdict, "contradicted");
+  assert.equal(a.verdict, "unsupported");
+  assert.match(a.text, /neither establishes that queries occurred nor excludes it/);
   assert.match(a.text, /AWS documentation/);
   assert.doesNotMatch(a.text, /Resolver query logging config/);
   const r = result(s);
   assert.equal(r.healthy, false);
   assert.equal(r.status, "FINDING NOT SUPPORTED YET");
-  assert.match(r.explanation, /Contradicted by AWS documentation/);
+  assert.match(r.explanation, /Unsupported\. AWS documentation shows/);
   const cache = setDnsHypothesis(collect(newDnsMission(), "CACHE", "RESOLVER_START"), "H_CACHE");
-  assert.match(assessDnsFinding(cache).hypothesis.text, /Contradicted by Resolver query logging config.*cache cannot remove records/);
+  assert.match(assessDnsFinding(cache).hypothesis.text, /Unsupported\. Resolver query logging config.*nothing for a cache to hide/);
   const tunnel = setDnsHypothesis(collect(newDnsMission(), "LEAD"), "H_TUNNEL");
   assert.equal(assessDnsFinding(tunnel).hypothesis.verdict, "unsupported");
   assert.match(assessDnsFinding(tunnel).hypothesis.text, /lead is a reason to investigate/);
@@ -242,7 +243,7 @@ test("order matters: the same steps in a different order give different intermed
   const early = assessDnsFinding(setDnsHypothesis(collect(newDnsMission(), "FLOW_ZERO"), "H_NONE")).hypothesis.verdict;
   const late = assessDnsFinding(collect(setDnsHypothesis(collect(newDnsMission(), "FLOW_ZERO"), "H_NONE"), "FLOW_SCOPE")).hypothesis.verdict;
   assert.equal(early, "premature");
-  assert.equal(late, "contradicted");
+  assert.equal(late, "unsupported");
   const a = result(change(newDnsMission(), "RESOLVER_OFF", "RESOLVER_ON"));
   const b = result(change(newDnsMission(), "RESOLVER_OFF"));
   assert.notEqual(a.coverage[0].value, b.coverage[0].value);
@@ -376,4 +377,29 @@ test("every evidence item is public, concise and free of em dashes", () => {
   const r = result(s);
   assert.doesNotMatch(r.explanation + r.evidence, /—/);
   assert.doesNotMatch(r.evidence, /ms\b|latency|real packets lost/i);
+});
+
+test("audit: no hypothesis is ever called contradicted by evidence that is merely compatible with it", () => {
+  const verdicts = new Set();
+  const subsets = [[], ["FLOW_ZERO"], ["RESOLVER_ROWS"], ["FLOW_SCOPE"], ["RESOLVER_START"], ["CLOUDTRAIL"], ["CACHE"], ["LEAD"], ["HOST"], ["PCAP"], ["ANALYST"], ALL_EVIDENCE];
+  for (const h of DNS_HYPOTHESES) {
+    for (const ids of subsets) {
+      const a = assessDnsFinding(setDnsHypothesis(collect(newDnsMission(), ...ids), h.id)).hypothesis;
+      verdicts.add(a.verdict);
+      assert.notEqual(a.verdict, "contradicted", h.id + " with " + ids.join());
+      if (h.id !== "H_UNKNOWN" && a.verdict === "unsupported") assert.doesNotMatch(a.text, /Contradict|disprove|ruled out by/i);
+    }
+  }
+  assert.deepEqual([...verdicts].sort(), ["premature", "supported", "unsupported"]);
+  for (const id of ["FLOW_SCOPE", "RESOLVER_START"]) {
+    const none = assessDnsFinding(setDnsHypothesis(collect(newDnsMission(), id), "H_NONE")).hypothesis;
+    const cache = assessDnsFinding(setDnsHypothesis(collect(newDnsMission(), id), "H_CACHE")).hypothesis;
+    assert.equal(none.verdict, "unsupported");
+    assert.equal(cache.verdict, "unsupported");
+    assert.match(none.text, /neither establishes that queries occurred nor excludes it/);
+    assert.match(cache.text, /neither establishes that cached queries occurred nor excludes it/);
+  }
+  for (const h of ["H_NONE", "H_CACHE", "H_TUNNEL"]) {
+    assert.equal(assessDnsFinding(setDnsHypothesis(collect(newDnsMission(), ...ALL_EVIDENCE), h)).complete, false);
+  }
 });
