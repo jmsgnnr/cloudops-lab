@@ -155,8 +155,9 @@ test("old history cannot be recovered: backfill is rejected and the past never c
 test("later event separates Resolver query coverage, host attribution, cache and Flow Logs exclusion", () => {
   const base = simulateLaterEvent(newDnsMission().config).rows;
   const row = (rows, key) => rows.find(r => r.key === key);
-  assert.match(row(base, "resolver").value, /4 of 8 lookups logged, 4 of 4 names/);
-  assert.match(row(base, "resolver").value, /host cache answered the repeats/);
+  assert.match(row(base, "resolver").value, /^6 of 8 lookups logged, 4 of 4 names/);
+  assert.match(row(base, "resolver").value, /Assumes a 60 s record TTL and lookups at \+0, \+5, \+10, \+15, \+30, \+40, \+90, \+120 s/);
+  assert.match(row(base, "resolver").value, /not logged/);
   assert.equal(row(base, "process").ok, false);
   assert.match(row(base, "process").value, /identify the instance, not the process/);
   assert.match(row(base, "flow").value, /^0 DNS records.*not captured/);
@@ -164,7 +165,11 @@ test("later event separates Resolver query coverage, host attribution, cache and
   assert.equal(row(host, "process").ok, true);
   assert.match(row(host, "process").value, /8 of 8 lookups/);
   const nocache = simulateLaterEvent(change(newDnsMission(), "CACHE_OFF").config).rows;
-  assert.match(row(nocache, "resolver").value, /^8 of 8 lookups logged, 4 of 4 names/);
+  assert.match(row(nocache, "resolver").value, /^6 of 8 lookups logged, 4 of 4 names/, "the Resolver cache still absorbs in-TTL repeats");
+  assert.match(row(nocache, "resolver").value, /8 lookups reached the resolver and 2 of those were answered from the Resolver cache/);
+  assert.match(row(base, "resolver").value, /6 lookups reached the resolver and 0 of those/);
+  assert.equal(simulateLaterEvent(change(newDnsMission(), "CACHE_OFF").config).logged, 6);
+  assert.ok(simulateLaterEvent(newDnsMission().config).logged < 8, "full coverage is never promised");
   const off = simulateLaterEvent(change(newDnsMission(), "RESOLVER_OFF").config).rows;
   assert.match(row(off, "resolver").value, /^0 records.*new blind spot/);
   const detail = simulateLaterEvent(change(newDnsMission(), "FLOW_DETAILED").config).rows;
@@ -194,6 +199,8 @@ test("wrong fixes fail with explanations: richer Flow Logs, broad capture, disab
   const cache = result(change(good, "HOST_ON", "CACHE_OFF"));
   assert.equal(cache.healthy, true);
   assert.match(cache.explanation, /not needed to learn the names/);
+  assert.match(cache.explanation, /does not make the log complete.*Resolver has its own cache/);
+  assert.match(cache.coverage[0].value, /^6 of 8/);
 });
 
 test("correct path: corroborate, justify uncertainty, scoped host telemetry, verified", () => {
