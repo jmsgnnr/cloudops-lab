@@ -40,6 +40,19 @@ async function open(page, i) {
   assert.equal(await page.locator("#playable-test").isEnabled(), true);
   assert.equal(await page.locator("#incident-evidence").isVisible(), false, "raw artifacts are optional");
 }
+/** Regression for #15: the header stat that reads as a control must open Field Labs by mouse and keyboard. */
+async function statOpensLabs(page, viaKeyboard) {
+  await page.goto(base, { waitUntil: "networkidle" });
+  assert.equal(await page.locator("#lab-home").isVisible(), false);
+  if (viaKeyboard) {
+    await page.locator("#field-labs-stat").focus();
+    await page.keyboard.press("Enter");
+  } else {
+    await page.locator("#field-labs-stat").click();
+  }
+  assert.equal(await page.locator("#lab-home").isVisible(), true);
+  assert.equal(await page.locator("#tab-labs").getAttribute("aria-pressed"), "true");
+}
 const shot = (page, name) => shots ? page.screenshot({ path: `${shots}/${name}.png`, fullPage: true }) : null;
 
 /** Each play returns after reaching a verified result; it first exercises a wrong move and undo. */
@@ -98,6 +111,11 @@ const plays = [
 
 try {
   for (const [width, height] of [[1440, 900], [390, 844], [320, 740]]) {
+    const statPage = await browser.newPage({ viewport: { width, height } });
+    collect(statPage);
+    await statOpensLabs(statPage, false);
+    await statOpensLabs(statPage, true);
+    await statPage.close();
     for (let i = 0; i < 3; i++) {
       const page = await browser.newPage({ viewport: { width, height }, acceptDownloads: true });
       collect(page);
